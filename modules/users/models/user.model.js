@@ -4,13 +4,6 @@ const { Model, DataTypes } = require('sequelize');
 module.exports = (sequelize) => {
   class User extends Model {
     static associate(models) {
-      // Each user can have many procurements
-      User.hasMany(models.Procurement, {
-        foreignKey: 'citizen_id',
-        as: 'procurements',
-        onDelete: 'CASCADE',
-      });
-
       // Each user can have many system logs
       User.hasMany(models.SystemLog, {
         foreignKey: 'user_id',
@@ -18,26 +11,12 @@ module.exports = (sequelize) => {
         onDelete: 'SET NULL',
       });
 
-      // Each auditor can flag many procurements
-      User.hasMany(models.ProcurementFlag, {
-        foreignKey: 'auditor_id',
-        as: 'flags',
-        onDelete: 'CASCADE',
-      });
+      User.hasMany(models.OTP, {
+        foreignKey: 'email',
+        sourceKey: 'email',
+        as: 'otps',
+      })
 
-      // Each auditor can create many anomalies
-      User.hasMany(models.Anomaly, {
-        foreignKey: 'auditor_id',
-        as: 'anomalies',
-        onDelete: 'CASCADE',
-      });
-
-      // Admin can be assigned to anomalies
-      User.hasMany(models.Anomaly, {
-        foreignKey: 'assigned_to',
-        as: 'assignedAnomalies',
-        onDelete: 'SET NULL',
-      });
     }
   }
 
@@ -79,6 +58,10 @@ module.exports = (sequelize) => {
         type: DataTypes.ENUM('citizen', 'auditor', 'admin'),
         defaultValue: 'citizen',
         allowNull: false,
+      },
+      isVerified: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
       },
       status: {
         type: DataTypes.ENUM('active', 'inactive', 'blocked'),

@@ -1,6 +1,7 @@
 const logRepository = require('../repositories/log.repository');
 const { RESPONSE_MESSAGES, API_STATUS_CODES } = require('../../../app/constant/apistatus');
 const AppError = require('../../../utils/AppError.util');
+const { param } = require('../routes/log.routes');
 
 class LogService {
 
@@ -9,6 +10,8 @@ class LogService {
      * @param {Object} logData - { userId, userRole, action, entityType, entityId, before_state, after_state, ip, severity, status, error_message }
      * @returns {Promise<Object>}
      */
+
+
     async logAction(logData) {
         try {
             const log = await logRepository.createLog({
@@ -17,15 +20,18 @@ class LogService {
                 action: logData.action,
                 entity_type: logData.entityType,
                 entity_id: logData.entityId,
-                before_state: logData.before_state,
-                after_state: logData.after_state,
                 ip_address: logData.ip,
                 severity: logData.severity || 'info',
                 status: logData.status || 'success',
-                error_message: logData.error_message
+                message: logData.message || null,
             });
 
+            if (!log) {
+                console.warn('Failed to create log entry:', logData);
+            }
+
             return log;
+
         } catch (error) {
             console.error('Error logging action:', error);
             // Don't throw - logging should not break the application
@@ -40,14 +46,16 @@ class LogService {
      * @param {Object} details - Additional details
      * @returns {Promise<Object>}
      */
+
+
     async logCriticalAction(userId, action, details = {}) {
-        return this.logAction({
-            userId,
-            action,
-            severity: 'critical',
-            ...details
-        });
-    }
+    return this.logAction({
+        userId,
+        action,
+        severity: 'critical',
+        ...details
+    });
+}
 
     /**
      * Log error/failed operation
@@ -58,15 +66,15 @@ class LogService {
      * @returns {Promise<Object>}
      */
     async logError(userId, action, errorMessage, details = {}) {
-        return this.logAction({
-            userId,
-            action,
-            status: 'failure',
-            error_message: errorMessage,
-            severity: 'warning',
-            ...details
-        });
-    }
+    return this.logAction({
+        userId,
+        action,
+        status: 'failure',
+        error_message: errorMessage,
+        severity: 'warning',
+        ...details
+    });
+}
 
     /**
      * Get all logs (admin only)
@@ -75,14 +83,14 @@ class LogService {
      * @returns {Promise<Object>}
      */
     async getAllLogs(filters = {}, pagination = {}) {
-        const { page = 1, limit = 20 } = pagination;
-        
-        return logRepository.getLogs({
-            page: parseInt(page),
-            limit: parseInt(limit),
-            ...filters
-        });
-    }
+    const { page = 1, limit = 20 } = pagination;
+
+    return logRepository.getLogs({
+        page: parseInt(page),
+        limit: parseInt(limit),
+        ...filters
+    });
+}
 
     /**
      * Get logs for a specific user
@@ -91,17 +99,17 @@ class LogService {
      * @returns {Promise<Object>}
      */
     async getUserLogs(userId, pagination = {}) {
-        const { page = 1, limit = 20 } = pagination;
+    const { page = 1, limit = 20 } = pagination;
 
-        if (!userId) {
-            throw new AppError('User ID required', API_STATUS_CODES.BAD_REQUEST);
-        }
-
-        return logRepository.getLogsByUser(userId, {
-            page: parseInt(page),
-            limit: parseInt(limit)
-        });
+    if (!userId) {
+        throw new AppError('User ID required', API_STATUS_CODES.BAD_REQUEST);
     }
+
+    return logRepository.getLogsByUser(userId, {
+        page: parseInt(page),
+        limit: parseInt(limit)
+    });
+}
 
     /**
      * Get logs by action
@@ -110,17 +118,17 @@ class LogService {
      * @returns {Promise<Object>}
      */
     async getLogsByAction(action, pagination = {}) {
-        const { page = 1, limit = 20 } = pagination;
+    const { page = 1, limit = 20 } = pagination;
 
-        if (!action) {
-            throw new AppError('Action required', API_STATUS_CODES.BAD_REQUEST);
-        }
-
-        return logRepository.getLogsByAction(action, {
-            page: parseInt(page),
-            limit: parseInt(limit)
-        });
+    if (!action) {
+        throw new AppError('Action required', API_STATUS_CODES.BAD_REQUEST);
     }
+
+    return logRepository.getLogsByAction(action, {
+        page: parseInt(page),
+        limit: parseInt(limit)
+    });
+}
 
     /**
      * Get critical logs
@@ -128,13 +136,13 @@ class LogService {
      * @returns {Promise<Object>}
      */
     async getCriticalLogs(pagination = {}) {
-        const { page = 1, limit = 20 } = pagination;
+    const { page = 1, limit = 20 } = pagination;
 
-        return logRepository.getCriticalLogs({
-            page: parseInt(page),
-            limit: parseInt(limit)
-        });
-    }
+    return logRepository.getCriticalLogs({
+        page: parseInt(page),
+        limit: parseInt(limit)
+    });
+}
 
     /**
      * Get failed operations
@@ -142,13 +150,13 @@ class LogService {
      * @returns {Promise<Object>}
      */
     async getFailedOperations(pagination = {}) {
-        const { page = 1, limit = 20 } = pagination;
+    const { page = 1, limit = 20 } = pagination;
 
-        return logRepository.getFailedOperations({
-            page: parseInt(page),
-            limit: parseInt(limit)
-        });
-    }
+    return logRepository.getFailedOperations({
+        page: parseInt(page),
+        limit: parseInt(limit)
+    });
+}
 
     /**
      * Get audit trail for an entity
@@ -158,17 +166,17 @@ class LogService {
      * @returns {Promise<Object>}
      */
     async getEntityAuditTrail(entityType, entityId, pagination = {}) {
-        const { page = 1, limit = 20 } = pagination;
+    const { page = 1, limit = 20 } = pagination;
 
-        if (!entityType || !entityId) {
-            throw new AppError('Entity type and ID required', API_STATUS_CODES.BAD_REQUEST);
-        }
-
-        return logRepository.getEntityLogs(entityType, entityId, {
-            page: parseInt(page),
-            limit: parseInt(limit)
-        });
+    if (!entityType || !entityId) {
+        throw new AppError('Entity type and ID required', API_STATUS_CODES.BAD_REQUEST);
     }
+
+    return logRepository.getEntityLogs(entityType, entityId, {
+        page: parseInt(page),
+        limit: parseInt(limit)
+    });
+}
 
     /**
      * Get logs by date range
@@ -178,17 +186,17 @@ class LogService {
      * @returns {Promise<Object>}
      */
     async getLogsByDateRange(startDate, endDate, pagination = {}) {
-        const { page = 1, limit = 20 } = pagination;
+    const { page = 1, limit = 20 } = pagination;
 
-        if (!startDate || !endDate) {
-            throw new AppError('Start date and end date required', API_STATUS_CODES.BAD_REQUEST);
-        }
-
-        return logRepository.getLogsByDateRange(startDate, endDate, {
-            page: parseInt(page),
-            limit: parseInt(limit)
-        });
+    if (!startDate || !endDate) {
+        throw new AppError('Start date and end date required', API_STATUS_CODES.BAD_REQUEST);
     }
+
+    return logRepository.getLogsByDateRange(startDate, endDate, {
+        page: parseInt(page),
+        limit: parseInt(limit)
+    });
+}
 
     /**
      * Get activity summary
@@ -196,12 +204,12 @@ class LogService {
      * @returns {Promise<Array>}
      */
     async getActivitySummary(days = 7) {
-        if (days < 1 || days > 365) {
-            throw new AppError('Days must be between 1 and 365', API_STATUS_CODES.BAD_REQUEST);
-        }
-
-        return logRepository.getActivitySummary(parseInt(days));
+    if (days < 1 || days > 365) {
+        throw new AppError('Days must be between 1 and 365', API_STATUS_CODES.BAD_REQUEST);
     }
+
+    return logRepository.getActivitySummary(parseInt(days));
+}
 
     /**
      * Get user activity breakdown
@@ -209,12 +217,12 @@ class LogService {
      * @returns {Promise<Array>}
      */
     async getUserActivityBreakdown(userId) {
-        if (!userId) {
-            throw new AppError('User ID required', API_STATUS_CODES.BAD_REQUEST);
-        }
-
-        return logRepository.getUserActivity(userId);
+    if (!userId) {
+        throw new AppError('User ID required', API_STATUS_CODES.BAD_REQUEST);
     }
+
+    return logRepository.getUserActivity(userId);
+}
 
     /**
      * Cleanup old logs
@@ -222,17 +230,17 @@ class LogService {
      * @returns {Promise<Object>}
      */
     async cleanupOldLogs(days = 90) {
-        if (days < 7 || days > 365) {
-            throw new AppError('Days must be between 7 and 365', API_STATUS_CODES.BAD_REQUEST);
-        }
-
-        const deletedCount = await logRepository.deleteOldLogs(parseInt(days));
-
-        return {
-            message: `Deleted ${deletedCount} logs older than ${days} days`,
-            deletedCount
-        };
+    if (days < 7 || days > 365) {
+        throw new AppError('Days must be between 7 and 365', API_STATUS_CODES.BAD_REQUEST);
     }
+
+    const deletedCount = await logRepository.deleteOldLogs(parseInt(days));
+
+    return {
+        message: `Deleted ${deletedCount} logs older than ${days} days`,
+        deletedCount
+    };
+}
 }
 
 module.exports = new LogService();

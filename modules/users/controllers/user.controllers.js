@@ -2,6 +2,9 @@ const userService = require('../services/user.service');
 const LogService = require('../../logs/services/log.service');
 const { RESPONSE_MESSAGES, API_STATUS_CODES } = require('../../../app/constant/apistatus');
 const AppError = require('../../../utils/AppError.util');
+const logtypes = require('../../../app/constant/logstype');
+const otpService = require('../../otp/services/otp.service')
+
 
 class UserController {
 
@@ -19,25 +22,40 @@ class UserController {
                 name,
                 email,
                 password,
-                role: role || 'citizen'
+                role: role,
             });
 
-            // Log the registration action
-            await LogService.logAction({
-                user_id: user.id,
-                action: 'USER_REGISTERED',
-                entity_type: 'user',
-                entity_id: user.id,
-                status: 'success',
-                severity: 'info',
-                ip: req.ip
-            });
+            const userData = {
+                email: email,
+                purpose: 'registration'
+            }
 
 
-            console.log('user ip :', req.ip);
+            const otp = await otpService.createOTP(userData);
+
+            user.otp = otp;
+
+            // // Log the registration action
+            // const log = await LogService.logAction({
+            //     user_id: user.id,
+            //     action: logtypes.REGISTERED_USERS,
+            //     entity_type: 'user',
+            //     entity_id: user.id,
+            //     status: 'success',
+            //     severity: 'info',
+            //     ip: req.ip
+            // });
+
+            // console.log('Log created:', log);
+
+            // if (!log) {
+            //     console.error('Failed to log user registration');
+            // }
+
+            // console.log('user ip :', req.ip);
             res.status(API_STATUS_CODES.CREATED).json({
                 success: true,
-                message: 'User registered successfully',
+                message: 'Verify your email , check your mail',
                 user
             });
         } catch (error) {
@@ -54,17 +72,6 @@ class UserController {
             const { email, password } = req.body;
 
             const result = await userService.loginUser(email, password);
-
-            // Log the login action
-            await LogService.logAction({
-                userId: result.user.id,
-                action: 'USER_LOGIN',
-                entityType: 'user',
-                entityId: result.user.id,
-                status: 'success',
-                severity: 'info',
-                ip: req.ip
-            });
 
             res.status(API_STATUS_CODES.SUCCESS).json({
                 success: true,

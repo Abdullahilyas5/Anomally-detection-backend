@@ -32,6 +32,7 @@ const modelOrder = [
   'anomalies/models/procurement-flag.model.js',
   'anomalies/models/anomalies.model.js',
   'logs/models/log.model.js',
+  'otp/models/otp.model.js'
 ];
 
 // Define model name mapping for PascalCase
@@ -41,6 +42,7 @@ const modelNameMap = {
   'anomalies/models/procurement-flag.model.js': 'ProcurementFlag',
   'anomalies/models/anomalies.model.js': 'Anomaly',
   'logs/models/log.model.js': 'SystemLog',
+  'otp/models/otp.model.js': 'OTP'
 };
 
 // Load models in specific order

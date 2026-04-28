@@ -1,5 +1,8 @@
+require('dotenv').config();
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
+const { google } = require('googleapis');
+
 const { RESPONSE_MESSAGES, API_STATUS_CODES } = require('../app/constant/apistatus');
 const AppError = require('./AppError.util');
 
@@ -7,80 +10,69 @@ const AppError = require('./AppError.util');
 const otpStorage = new Map();
 
 class OTPUtils {
-
-    
-
+    // Generate a 4-digit OTP
     static generateOTP() {
         return crypto.randomInt(1000, 9999).toString();
     }
 
-
+    // Check if an OTP has expired
     static isOTPExpired(expiryTime) {
         return new Date() > new Date(expiryTime);
     }
 
-
+    // Set OTP expiry (5 minutes)
     static setOTPExpiry() {
-        return new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+        return new Date(Date.now() + 5 * 60 * 1000);
     }
 
-
-    static storeOTP(email, otp, expiryTime) {
+    // Store OTP for an email
+    static storeOTP(email, otp) {
         otpStorage.set(email, {
             otp,
-            expiryTime,
-            isVerified: false
+            expiryTime: this.setOTPExpiry(),
+            isVerified: false,
         });
-
-        // Clean up expired OTPs
-        this.cleanupExpiredOTPs();
     }
 
-
+    // Retrieve OTP data
     static getOTP(email) {
-        const otpData = otpStorage.get(email);
-        if (!otpData) return null;
-
-        // Check if OTP is expired
-        if (this.isOTPExpired(otpData.expiryTime)) {
+        const data = otpStorage.get(email);
+        if (!data) return null;
+        if (this.isOTPExpired(data.expiryTime)) {
             otpStorage.delete(email);
             return null;
         }
-
-        return otpData;
+        return data;
     }
 
-
+    // Verify OTP
     static verifyOTP(email, otp) {
-        const otpData = this.getOTP(email);
-        if (!otpData) return false;
-
-        return otpData.otp === otp;
+        const data = this.getOTP(email);
+        return data && data.otp === otp;
     }
 
-
+    // Mark OTP as verified
     static markOTPVerified(email) {
-        const otpData = otpStorage.get(email);
-        if (otpData) {
-            otpData.isVerified = true;
-            otpStorage.set(email, otpData);
+        const data = otpStorage.get(email);
+        if (data) {
+            data.isVerified = true;
+            otpStorage.set(email, data);
         }
     }
 
-
+    // Check verification status
     static isOTPVerified(email) {
-        const otpData = this.getOTP(email);
-        return otpData ? otpData.isVerified : false;
+        const data = this.getOTP(email);
+        return data ? data.isVerified : false;
     }
 
-
+    // Remove OTP entry
     static removeOTP(email) {
         otpStorage.delete(email);
     }
 
-
+    // Cleanup expired OTPs
     static cleanupExpiredOTPs() {
-        const now = new Date();
         for (const [email, otpData] of otpStorage.entries()) {
             if (this.isOTPExpired(otpData.expiryTime)) {
                 otpStorage.delete(email);
@@ -88,45 +80,72 @@ class OTPUtils {
         }
     }
 
-
-
-    static sendOtpEmail = async (email, otp) => {
-
+    // Send OTP Email using OAuth2 (client ID, secret, refresh token)
+    static async sendOtpEmail(email, otp, purpose = 'registration') {
         try {
+            // Create OAuth2 client
+            const oAuth2Client = new google.auth.OAuth2(
+                process.env.CLIENT_ID,
+                process.env.CLIENT_SECRET,
+                'https://developers.google.com/oauthplayground'
+            );
+            console.log("Checking ENV vars:");
+            console.log("CLIENT_ID:", !!process.env.CLIENT_ID);
+            console.log("CLIENT_SECRET:", !!process.env.CLIENT_SECRET);
+            console.log("REFRESH_TOKEN:", !!process.env.REFRESH_TOKEN);
+            
+            oAuth2Client.setCredentials({ refresh_token: process.env.REFRESH_TOKEN });
+
+            // Obtain access token
+            const accessTokenObj = await oAuth2Client.getAccessToken();
+            const accessToken = accessTokenObj && accessTokenObj.token ? accessTokenObj.token : null;
+            if (!accessToken) {
+                throw new Error('Failed to obtain access token from refresh token');
+            }
+
+            // Create Nodemailer transporter using OAuth2
             const transporter = nodemailer.createTransport({
-                service: "gmail",
+                service: 'gmail',
                 auth: {
-                    user: process.env.EMAIL_USER, // Email address from environment variables
-                    pass: process.env.EMAIL_PASS, // Email password from environment variables
+                    type: 'OAuth2',
+                    user: process.env.EMAIL_USER,
+                    clientId: process.env.CLIENT_ID,
+                    clientSecret: process.env.CLIENT_SECRET,
+                    refreshToken: process.env.REFRESH_TOKEN,
+                    accessToken,
                 },
             });
-            console.log('process.env.EMAIL_USER:', process.env.EMAIL_USER , 'process.env.EMAIL_PASS:', process.env.EMAIL_PASS);
-            console.log('Nodemailer transporter created');
-            console.warn("Sending OTP to:", email);
 
-            const mailOptions = {
+            console.log('Nodemailer OAuth2 transporter created for', process.env.EMAIL_USER);
+            console.log('Sending OTP to:', email);
+
+            const subject = purpose === 'registration' ? 'Registration OTP' : 'Password Reset OTP';
+            const message = purpose === 'registration'
+                ? `Your OTP for registration is: ${otp}\n\nThis OTP will expire in 5 minutes.`
+                : `Your OTP for password reset is: ${otp}\n\nThis OTP will expire in 5 minutes.`;
+
+            await transporter.sendMail({
                 from: process.env.EMAIL_USER,
                 to: email,
-                subject: "Password Reset OTP",
-                text: `Your OTP for password reset is: ${otp}`,
-            };
+                subject,
+                text: message,
+            });
 
-            await transporter.sendMail(mailOptions);
+            console.log('OTP email sent successfully');
             return RESPONSE_MESSAGES.EMAIL_SEND_SUCCESS;
-        }
-        catch (error) {
-            console.error('Error sending OTP email:', error);
+        } catch (error) {
+            console.error('Error sending OTP email via OAuth2:', error);
             throw new AppError(RESPONSE_MESSAGES.EMAIL_SEND_FAILED, API_STATUS_CODES.ERROR_CODE);
         }
-    };
+    }
 
-
+    // Validate OTP format (4 digits)
     static validateOTPFormat(otp) {
         return /^\d{4}$/.test(otp);
     }
 }
 
-// Clean up expired OTPs every 5 minutes
+// Periodic cleanup every 5 minutes
 setInterval(() => {
     OTPUtils.cleanupExpiredOTPs();
 }, 5 * 60 * 1000);

@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const userRoutes = require('./modules/users/routes/users.routes');
 const logRoutes = require('./modules/logs/routes/log.routes');
+const otpRoutes = require('./modules/otp/routes/otp.route');
 const bodyParser = require('body-parser');
 const app = express();
 
@@ -17,6 +18,9 @@ app.use('/api/users', userRoutes);
 
 // Log routes (admin)
 app.use('/api/logs', logRoutes);
+
+// OTP routes
+app.use('/api/otp', otpRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

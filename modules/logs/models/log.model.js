@@ -51,16 +51,6 @@ module.exports = (sequelize) => {
         allowNull: true,
         comment: 'ID of the entity being acted on',
       },
-      before_state: {
-        type: DataTypes.JSON,
-        allowNull: true,
-        comment: 'Previous state before action',
-      },
-      after_state: {
-        type: DataTypes.JSON,
-        allowNull: true,
-        comment: 'New state after action',
-      },
       ip_address: {
         type: DataTypes.STRING(45),
         allowNull: true,
@@ -81,7 +71,7 @@ module.exports = (sequelize) => {
           isIn: [['success', 'failure']],
         },
       },
-      error_message: {
+      message: {
         type: DataTypes.TEXT,
         allowNull: true,
       },

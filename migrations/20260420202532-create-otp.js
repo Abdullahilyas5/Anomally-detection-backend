@@ -3,44 +3,38 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('users', {
+    await queryInterface.createTable('otp', {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
         autoIncrement: true,
         allowNull: false,
       },
-      name: {
-        type: Sequelize.STRING(255),
-        allowNull: false,
-      },
       email: {
         type: Sequelize.STRING(255),
         allowNull: false,
-        unique: true,
       },
-      password: {
+      otp: {
         type: Sequelize.STRING(255),
         allowNull: false,
       },
-      role: {
-        type: Sequelize.ENUM('citizen', 'auditor', 'admin'),
+      expires_time: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
+      purpose: {
+        type: Sequelize.ENUM('registration', 'password_reset'),
         allowNull: false,
-        defaultValue: 'citizen',
+      },
+      attempts: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        defaultValue: 0,
       },
       is_verified: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
         defaultValue: false,
-      },
-      status: {
-        type: Sequelize.ENUM('active', 'inactive', 'blocked'),
-        allowNull: false,
-        defaultValue: 'active',
-      },
-      last_login: {
-        type: Sequelize.DATE,
-        allowNull: true,
       },
       created_at: {
         type: Sequelize.DATE,
@@ -54,14 +48,12 @@ module.exports = {
       },
     });
 
-    // Optional: Add indexes
-    await queryInterface.addIndex('users', ['email']);
-    await queryInterface.addIndex('users', ['role']);
-    await queryInterface.addIndex('users', ['status']);
+    // Add indexes
+    await queryInterface.addIndex('otp', ['email']);
+    await queryInterface.addIndex('otp', ['purpose']);
   },
 
   async down(queryInterface, Sequelize) {
-    // Drop ENUM types before dropping table (MySQL handles it automatically in most cases)
-    await queryInterface.dropTable('users');
+    await queryInterface.dropTable('otp');
   },
 };

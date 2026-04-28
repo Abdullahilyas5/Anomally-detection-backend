@@ -1,6 +1,7 @@
 const db = require('../../../utils/dbconnect');
 const AppError = require('../../../utils/AppError.util');
 const { API_STATUS_CODES } = require('../../../app/constant/apistatus');
+const SystemLog  = require('../models/log.model');
 
 class LogRepository {
 
@@ -10,35 +11,26 @@ class LogRepository {
      * @returns {Promise<Object>}
      */
     async createLog(logData) {
-        return new Promise((resolve, reject) => {
-            const sql = `INSERT INTO system_logs 
-            (user_id, user_role, action, entity_type, entity_id, before_state, after_state, ip_address, severity, status, error_message) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-
-            const values = [
-                logData.user_id || null,
-                logData.user_role || null,
-                logData.action,
-                logData.entity_type || null,
-                logData.entity_id || null,
-                logData.before_state ? JSON.stringify(logData.before_state) : null,
-                logData.after_state ? JSON.stringify(logData.after_state) : null,
-                logData.ip_address || null,
-                logData.severity || 'info',
-                logData.status || 'success',
-                logData.error_message || null
-            ];
-
-            db.query(sql, values, (error, results) => {
-                if (error) return reject(error);
-                
-                resolve({
-                    id: results.insertId,
-                    ...logData,
-                    created_at: new Date()
-                });
+        try {
+            const log = await SystemLog.create({
+                user_id: logData.user_id || null,
+                user_role: logData.user_role || null,
+                action: logData.action,
+                entity_type: logData.entity_type || null,
+                entity_id: logData.entity_id || null,
+                ip_address: logData.ip_address || null,
+                severity: logData.severity || "info",
+                status: logData.status || "success",
+                message: logData.message || null,
             });
-        });
+
+            console.log('Log created:', log.toJSON());
+
+            return log;
+
+        } catch (error) {
+            throw error;
+        }
     }
 
     /**

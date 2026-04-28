@@ -10,6 +10,7 @@ class UserRepository {
    * @param {Object} userData - { name, email, password, role }
    * @returns {Promise<Object>} - Created user object (without password)
    */
+
   async createUser(userData) {
     try {
       const user = await User.create({
@@ -17,7 +18,8 @@ class UserRepository {
         email: userData.email,
         password: userData.password,
         role: userData.role || 'citizen',
-        status: 'active',
+        status: userData.role === 'citizen' ? 'active' : 'inactive',
+        isVerified: userData.isVerified || false,
       });
 
       return user.toJSON();
@@ -30,6 +32,27 @@ class UserRepository {
       }
       throw error;
     }
+  }
+
+
+  async markUserVerified(id, { isVerified }) {
+    const user = await this.findUserById(id);
+
+    if (!user) {
+      throw new AppError(
+        RESPONSE_MESSAGES.USER_NOT_FOUND,
+        API_STATUS_CODES.NOT_FOUND
+      )
+    }
+
+    // Update the User table, not OTP table
+    const updatedUser = await User.update(
+      { isVerified },
+      {
+        where: { id }
+      }
+    )
+    return updatedUser;
   }
 
   /**

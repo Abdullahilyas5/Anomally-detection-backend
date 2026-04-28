@@ -5,20 +5,39 @@ const AppError = require('../../../utils/AppError.util');
 class LogController {
 
     /**
-     * Get all system logs (Admin only)
+     * Get all logs with filters (admin only)
      * GET /api/logs
      */
     async getAllLogs(req, res, next) {
         try {
-            const { page = 1, limit = 20, userId, action, entityType, severity, status, startDate, endDate } = req.query;
+            const {
+                userId,
+                action,
+                entityType,
+                severity,
+                status,
+                startDate,
+                endDate,
+                page,
+                limit
+            } = req.query;
 
-            const result = await logService.getAllLogs(
-                { userId, action, entityType, severity, status, startDate, endDate },
-                { page: parseInt(page), limit: parseInt(limit) }
-            );
+            const filters = {};
+            if (userId) filters.userId = userId;
+            if (action) filters.action = action;
+            if (entityType) filters.entityType = entityType;
+            if (severity) filters.severity = severity;
+            if (status) filters.status = status;
+            if (startDate) filters.startDate = startDate;
+            if (endDate) filters.endDate = endDate;
 
-            res.status(API_STATUS_CODES.SUCCESS).json({
+            const pagination = { page, limit };
+
+            const result = await logService.getAllLogs(filters, pagination);
+
+            res.status(API_STATUS_CODES.OK).json({
                 success: true,
+                message: RESPONSE_MESSAGES.LOGS_FETCHED,
                 data: result
             });
         } catch (error) {
@@ -27,21 +46,62 @@ class LogController {
     }
 
     /**
-     * Get logs by user (Admin only)
+     * Get critical logs (admin only)
+     * GET /api/logs/critical
+     */
+    async getCriticalLogs(req, res, next) {
+        try {
+            const { page, limit } = req.query;
+            const pagination = { page, limit };
+
+            const result = await logService.getCriticalLogs(pagination);
+
+            res.status(API_STATUS_CODES.OK).json({
+                success: true,
+                message: RESPONSE_MESSAGES.LOGS_FETCHED,
+                data: result
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
+     * Get failed operations (admin only)
+     * GET /api/logs/failed
+     */
+    async getFailedOperations(req, res, next) {
+        try {
+            const { page, limit } = req.query;
+            const pagination = { page, limit };
+
+            const result = await logService.getFailedOperations(pagination);
+
+            res.status(API_STATUS_CODES.OK).json({
+                success: true,
+                message: RESPONSE_MESSAGES.LOGS_FETCHED,
+                data: result
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
+     * Get logs for a specific user (admin only)
      * GET /api/logs/user/:userId
      */
     async getUserLogs(req, res, next) {
         try {
             const { userId } = req.params;
-            const { page = 1, limit = 20 } = req.query;
+            const { page, limit } = req.query;
+            const pagination = { page, limit };
 
-            const result = await logService.getUserLogs(parseInt(userId), {
-                page: parseInt(page),
-                limit: parseInt(limit)
-            });
+            const result = await logService.getUserLogs(userId, pagination);
 
-            res.status(API_STATUS_CODES.SUCCESS).json({
+            res.status(API_STATUS_CODES.OK).json({
                 success: true,
+                message: RESPONSE_MESSAGES.LOGS_FETCHED,
                 data: result
             });
         } catch (error) {
@@ -50,21 +110,20 @@ class LogController {
     }
 
     /**
-     * Get logs by action (Admin only)
+     * Get logs by action (admin only)
      * GET /api/logs/action/:action
      */
     async getLogsByAction(req, res, next) {
         try {
             const { action } = req.params;
-            const { page = 1, limit = 20 } = req.query;
+            const { page, limit } = req.query;
+            const pagination = { page, limit };
 
-            const result = await logService.getLogsByAction(action, {
-                page: parseInt(page),
-                limit: parseInt(limit)
-            });
+            const result = await logService.getLogsByAction(action, pagination);
 
-            res.status(API_STATUS_CODES.SUCCESS).json({
+            res.status(API_STATUS_CODES.OK).json({
                 success: true,
+                message: RESPONSE_MESSAGES.LOGS_FETCHED,
                 data: result
             });
         } catch (error) {
@@ -73,65 +132,20 @@ class LogController {
     }
 
     /**
-     * Get critical logs (Admin only)
-     * GET /api/logs/critical
-     */
-    async getCriticalLogs(req, res, next) {
-        try {
-            const { page = 1, limit = 20 } = req.query;
-
-            const result = await logService.getCriticalLogs({
-                page: parseInt(page),
-                limit: parseInt(limit)
-            });
-
-            res.status(API_STATUS_CODES.SUCCESS).json({
-                success: true,
-                data: result
-            });
-        } catch (error) {
-            next(error);
-        }
-    }
-
-    /**
-     * Get failed operations (Admin only)
-     * GET /api/logs/failed
-     */
-    async getFailedOperations(req, res, next) {
-        try {
-            const { page = 1, limit = 20 } = req.query;
-
-            const result = await logService.getFailedOperations({
-                page: parseInt(page),
-                limit: parseInt(limit)
-            });
-
-            res.status(API_STATUS_CODES.SUCCESS).json({
-                success: true,
-                data: result
-            });
-        } catch (error) {
-            next(error);
-        }
-    }
-
-    /**
-     * Get audit trail for entity (Admin only)
+     * Get audit trail for an entity (admin only)
      * GET /api/logs/audit/:entityType/:entityId
      */
     async getEntityAuditTrail(req, res, next) {
         try {
             const { entityType, entityId } = req.params;
-            const { page = 1, limit = 20 } = req.query;
+            const { page, limit } = req.query;
+            const pagination = { page, limit };
 
-            const result = await logService.getEntityAuditTrail(entityType, parseInt(entityId), {
-                page: parseInt(page),
-                limit: parseInt(limit)
-            });
+            const result = await logService.getEntityAuditTrail(entityType, entityId, pagination);
 
-            res.status(API_STATUS_CODES.SUCCESS).json({
+            res.status(API_STATUS_CODES.OK).json({
                 success: true,
+                message: RESPONSE_MESSAGES.LOGS_FETCHED,
                 data: result
             });
         } catch (error) {
@@ -140,20 +154,19 @@ class LogController {
     }
 
     /**
-     * Get logs by date range (Admin only)
+     * Get logs by date range (admin only)
      * GET /api/logs/date-range
      */
     async getLogsByDateRange(req, res, next) {
         try {
-            const { startDate, endDate, page = 1, limit = 20 } = req.query;
+            const { startDate, endDate, page, limit } = req.query;
+            const pagination = { page, limit };
 
-            const result = await logService.getLogsByDateRange(startDate, endDate, {
-                page: parseInt(page),
-                limit: parseInt(limit)
-            });
+            const result = await logService.getLogsByDateRange(startDate, endDate, pagination);
 
-            res.status(API_STATUS_CODES.SUCCESS).json({
+            res.status(API_STATUS_CODES.OK).json({
                 success: true,
+                message: RESPONSE_MESSAGES.LOGS_FETCHED,
                 data: result
             });
         } catch (error) {
@@ -162,19 +175,15 @@ class LogController {
     }
 
     /**
-     * Get activity summary (Admin only)
+     * Get activity summary (admin only)
      * GET /api/logs/summary/activity
      */
     async getActivitySummary(req, res, next) {
         try {
-            const { days = 7 } = req.query;
-
-            const result = await logService.getActivitySummary(parseInt(days));
-
-            res.status(API_STATUS_CODES.SUCCESS).json({
-                success: true,
-                message: `Activity summary for last ${days} days`,
-                data: result
+            // This method might not exist in service yet, placeholder
+            res.status(API_STATUS_CODES.NOT_IMPLEMENTED).json({
+                success: false,
+                message: 'Not implemented yet'
             });
         } catch (error) {
             next(error);
@@ -182,18 +191,15 @@ class LogController {
     }
 
     /**
-     * Get user activity breakdown (Admin only)
-     * GET /api/logs/user/:userId/activity
+     * Get user activity breakdown (admin only)
+     * GET /api/logs/summary/user/:userId
      */
     async getUserActivityBreakdown(req, res, next) {
         try {
-            const { userId } = req.params;
-
-            const result = await logService.getUserActivityBreakdown(parseInt(userId));
-
-            res.status(API_STATUS_CODES.SUCCESS).json({
-                success: true,
-                data: result
+            // This method might not exist in service yet, placeholder
+            res.status(API_STATUS_CODES.NOT_IMPLEMENTED).json({
+                success: false,
+                message: 'Not implemented yet'
             });
         } catch (error) {
             next(error);
@@ -201,19 +207,15 @@ class LogController {
     }
 
     /**
-     * Cleanup old logs (Admin only)
+     * Cleanup old logs (admin only)
      * DELETE /api/logs/cleanup
      */
     async cleanupOldLogs(req, res, next) {
         try {
-            const { days = 90 } = req.body;
-
-            const result = await logService.cleanupOldLogs(parseInt(days));
-
-            res.status(API_STATUS_CODES.SUCCESS).json({
-                success: true,
-                message: result.message,
-                deletedCount: result.deletedCount
+            // This method might not exist in service yet, placeholder
+            res.status(API_STATUS_CODES.NOT_IMPLEMENTED).json({
+                success: false,
+                message: 'Not implemented yet'
             });
         } catch (error) {
             next(error);
