@@ -1,0 +1,18 @@
+<section class="kpi-grid">
+  <div class="kpi">
+    <span class="muted">Total Anomalies</span>
+    <strong><%= helpers.number(kpis.totalAnomalies) %></strong>
+  </div>
+  <div class="kpi">
+    <span class="muted">Open Anomalies</span>
+    <strong><%= helpers.number(kpis.openAnomalies) %></strong>
+  </div>
+  <div class="kpi">
+    <span class="muted">Risk Score</span>
+    <strong><%= helpers.number(kpis.riskScore) %></strong>
+  </div>
+  <div class="kpi">
+    <span class="muted">Resolution Rate</span>
+    <strong><%= helpers.percent(kpis.resolutionRate) %></strong>
+  </div>
+</section>

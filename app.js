@@ -3,6 +3,7 @@ const cors = require('cors');
 const userRoutes = require('./modules/users/routes/users.routes');
 const logRoutes = require('./modules/logs/routes/log.routes');
 const otpRoutes = require('./modules/otp/routes/otp.route');
+const reportRoutes = require('./modules/reports/routes/reports.routes');
 const bodyParser = require('body-parser');
 const app = express();
 
@@ -21,6 +22,9 @@ app.use('/api/logs', logRoutes);
 
 // OTP routes
 app.use('/api/otp', otpRoutes);
+
+// reports routes
+app.use('/api/reports', reportRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -47,4 +51,3 @@ app.use((error, req, res, next) => {
 });
 
 module.exports = app;
-

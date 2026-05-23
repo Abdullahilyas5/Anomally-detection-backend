@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <%- include('partials/styles') %>
+</head>
+<body>
+  <%- include('partials/header', { meta, helpers }) %>
+
+  <h2>Incident Details</h2>
+  <table>
+    <thead>
+      <tr><th>ID</th><th>Title</th><th>Timestamp</th><th>Severity</th><th>Status</th><th>Root Cause / Notes</th></tr>
+    </thead>
+    <tbody>
+      <% anomalies.forEach((item) => { %>
+        <tr>
+          <td><%= item.id %></td>
+          <td><%= item.title %><br><span class="muted"><%= item.description %></span></td>
+          <td><%= helpers.formatDate(item.createdAt) %></td>
+          <td><span class="pill <%= item.severity %>"><%= helpers.title(item.severity) %></span></td>
+          <td><span class="pill <%= item.status %>"><%= helpers.title(item.status) %></span></td>
+          <td><%= item.investigation_notes || 'Investigation notes not recorded yet.' %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+
+  <h2>Evidence and Logs</h2>
+  <table>
+    <thead><tr><th>Action</th><th>Severity</th><th>Status</th><th>Message</th><th>Timestamp</th></tr></thead>
+    <tbody>
+      <% logs.slice(0, 30).forEach((log) => { %>
+        <tr>
+          <td><%= log.action %></td>
+          <td><span class="pill <%= log.severity %>"><%= helpers.title(log.severity) %></span></td>
+          <td><span class="pill <%= log.status %>"><%= helpers.title(log.status) %></span></td>
+          <td><%= log.message || 'N/A' %></td>
+          <td><%= helpers.formatDate(log.createdAt) %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+
+  <h2>AI Explanation and Recommendations</h2>
+  <p>The incident pattern should be reviewed against procurement history, flag evidence, and resolution notes before closure.</p>
+  <ul>
+    <% recommendations.forEach((item) => { %>
+      <li><%= item %></li>
+    <% }) %>
+  </ul>
+</body>
+</html>

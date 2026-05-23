@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <%- include('partials/styles') %>
+</head>
+<body>
+  <%- include('partials/header', { meta, helpers }) %>
+  <%- include('partials/kpis', { kpis, helpers }) %>
+
+  <h2>Severity Breakdown</h2>
+  <table>
+    <thead><tr><th>Severity</th><th>Count</th></tr></thead>
+    <tbody>
+      <% severityBreakdown.forEach((row) => { %>
+        <tr><td><span class="pill <%= row.severity %>"><%= helpers.title(row.severity) %></span></td><td><%= helpers.number(row.count) %></td></tr>
+      <% }) %>
+    </tbody>
+  </table>
+
+  <h2>Detection Trends</h2>
+  <table>
+    <thead><tr><th>Date</th><th>Detections</th></tr></thead>
+    <tbody>
+      <% trends.forEach((row) => { %>
+        <tr><td><%= row.date %></td><td><%= helpers.number(row.count) %></td></tr>
+      <% }) %>
+    </tbody>
+  </table>
+
+  <h2>Top Affected Systems</h2>
+  <table>
+    <thead><tr><th>Procurement</th><th>File</th><th>Anomalies</th></tr></thead>
+    <tbody>
+      <% topAffectedSystems.forEach((row) => { %>
+        <tr>
+          <td><%= row.procurement ? row.procurement.title : `Procurement #${row.procurement_id}` %></td>
+          <td><%= row.procurement ? row.procurement.file_name : 'N/A' %></td>
+          <td><%= helpers.number(row.count) %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</body>
+</html>

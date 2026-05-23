@@ -4,7 +4,8 @@ const { RESPONSE_MESSAGES, API_STATUS_CODES } = require('../../../app/constant/a
 const AppError = require('../../../utils/AppError.util');
 const LogService = require('../../logs/services/log.service');
 const OTPUtils = require('../../../utils/otp.util');
-const otpService = require('../../otp/services/otp.service')
+const otpService = require('../../otp/services/otp.service');
+const PasetoUtil = require('../../../utils/paseto.util');
 
 class UserService {
     constructor() {
@@ -76,8 +77,7 @@ class UserService {
         }
 
         // Verify password (would typically use bcrypt.compare here)
-        // const isValid = await bcrypt.compare(password, user.password);
-        const isValid = password === user.password;
+        const isValid = await bcrypt.compare(password, user.password);
 
         if (!isValid) {
             throw new Error('Invalid credentials');
@@ -87,7 +87,10 @@ class UserService {
     }
 
     async loginUser(email, password) {
+
         const user = await this.authenticateUser(email, password);
+
+        const token = PasetoUtil.generateToken({ userId: user.id, role: user.role });
 
         return { user, token };
     }

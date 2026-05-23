@@ -48,4 +48,4 @@ class PasetoUtil {
     }
 }
 
-module.exports = PasetoUtil;
+module.exports = new PasetoUtil();
