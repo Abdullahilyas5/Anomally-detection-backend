@@ -1,5 +1,5 @@
 const { Sequelize, DataTypes } = require('sequelize');
-const config = require('../config/config');
+const config = require('../config/config.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -28,19 +28,19 @@ const db = {
 // Load models in specific order to handle dependencies
 const modelOrder = [
   'users/models/user.model.js',
-  'anomalies/models/procurement.model.js',
-  'anomalies/models/procurement-flag.model.js',
-  'anomalies/models/anomalies.model.js',
+  'aimodel/models/procurement.model.js',
+  'aimodel/models/procurement-flag.model.js',
+  'aimodel/models/anomalies.model.js',
   'logs/models/log.model.js',
-  'otp/models/otp.model.js'
+  'otp/models/otp.model.js',
 ];
 
 // Define model name mapping for PascalCase
 const modelNameMap = {
   'users/models/user.model.js': 'User',
-  'anomalies/models/procurement.model.js': 'Procurement',
-  'anomalies/models/procurement-flag.model.js': 'ProcurementFlag',
-  'anomalies/models/anomalies.model.js': 'Anomaly',
+  'aimodel/models/procurement.model.js': 'Procurement',
+  'aimodel/models/procurement-flag.model.js': 'ProcurementFlag',
+  'aimodel/models/anomalies.model.js': 'Anomaly',
   'logs/models/log.model.js': 'SystemLog',
   'otp/models/otp.model.js': 'OTP'
 };

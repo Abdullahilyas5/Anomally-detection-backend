@@ -20,7 +20,7 @@ const startServer = async () => {
     reportScheduler.start();
 
     const port = process.env.PORT || 9000;
-    app.listen(port, '0.0.0.0', () => {
+    app.listen(port, () => {
       console.log(`🚀 Server running on port ${port}`);
       console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
     });
