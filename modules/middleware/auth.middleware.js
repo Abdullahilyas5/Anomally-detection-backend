@@ -1,69 +1,106 @@
-const PasetoUtil = require('../../utils/paseto.util');
+const JWTUtils = require('../../utils/jwt.util.js');
 const { RESPONSE_MESSAGES, API_STATUS_CODES } = require('../../app/constant/apistatus');
 const AppError = require('../../utils/AppError.util');
 
 /**
- * Middleware to authenticate user via Bearer token
+ * Authenticate user via Bearer token
  */
 const authenticateToken = async (req, res, next) => {
     try {
-        const authHeader = req.headers['authorization'];
-        const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
-        
-        if (!token) {
-            throw new AppError(RESPONSE_MESSAGES.ACCESS_DENIED, API_STATUS_CODES.UNAUTHORIZED);
+        const authHeader = req.headers.authorization;
+
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return next(
+                new AppError(
+                    RESPONSE_MESSAGES.ACCESS_DENIED || 'Access denied',
+                    API_STATUS_CODES.UNAUTHORIZED
+                )
+            );
         }
 
-        const pasetoUtil = new PasetoUtil();
-        const decoded = await pasetoUtil.verifyToken(token);
-        
-        // Store decoded user info in request
+        const token = authHeader.split(' ')[1];
+
+        const decoded = await JWTUtils.verifyAccessToken(token);
+
+        if (!decoded) {
+            return next(
+                new AppError(
+                    'Invalid token',
+                    API_STATUS_CODES.UNAUTHORIZED
+                )
+            );
+        }
+
+        // Support both payload structures
+        const payload = decoded.data || decoded;
+
         req.user = {
-            userId: decoded.data.userId,
-            email: decoded.data.email,
-            role: decoded.data.role
+            userId: payload.id || payload.userId,
+            email: payload.email,
+            role: payload.role
         };
 
-        console.log("Authenticated user:", req.user.userId);
+        if (!req.user.userId) {
+            return next(
+                new AppError(
+                    'Invalid token payload',
+                    API_STATUS_CODES.UNAUTHORIZED
+                )
+            );
+        }
+
+        console.log('Authenticated user:', req.user.userId);
+
         next();
     } catch (error) {
-        next(new AppError(RESPONSE_MESSAGES.TOKEN_EXPIRED, API_STATUS_CODES.UNAUTHORIZED));
+        console.error('Auth error:', error.message);
+
+        return next(
+            new AppError(
+                error.name === 'TokenExpiredError'
+                    ? 'Token expired'
+                    : 'Invalid token',
+                API_STATUS_CODES.UNAUTHORIZED
+            )
+        );
     }
 };
 
 /**
- * Middleware to verify user is admin
+ * Allow only admin users
  */
 const authorizeAdmin = (req, res, next) => {
-    if (req.user.role !== 'admin') {
-        return next(new AppError('Admin access required', API_STATUS_CODES.FORBIDDEN));
-    }
-    next();
-};
+    try {
+        if (!req.user) {
+            return next(
+                new AppError(
+                    'Unauthorized',
+                    API_STATUS_CODES.UNAUTHORIZED
+                )
+            );
+        }
 
-/**
- * Middleware to verify user is auditor
- */
-const authorizeAuditor = (req, res, next) => {
-    if (req.user.role !== 'auditor' && req.user.role !== 'admin') {
-        return next(new AppError('Auditor access required', API_STATUS_CODES.FORBIDDEN));
-    }
-    next();
-};
+        if (req.user.role !== 'admin') {
+            return next(
+                new AppError(
+                    'Admin access required',
+                    API_STATUS_CODES.FORBIDDEN
+                )
+            );
+        }
 
-/**
- * Middleware to verify user is citizen
- */
-const authorizeCitizen = (req, res, next) => {
-    if (req.user.role !== 'citizen' && req.user.role !== 'admin') {
-        return next(new AppError('Citizen access required', API_STATUS_CODES.FORBIDDEN));
+        next();
+    } catch (error) {
+        return next(
+            new AppError(
+                'Authorization failed',
+                API_STATUS_CODES.FORBIDDEN
+            )
+        );
     }
-    next();
 };
 
 module.exports = {
     authenticateToken,
-    authorizeAdmin,
-    authorizeAuditor,
-    authorizeCitizen
+    authorizeAdmin
 };

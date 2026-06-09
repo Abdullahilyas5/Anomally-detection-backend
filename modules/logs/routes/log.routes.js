@@ -1,10 +1,16 @@
+
 const express = require('express');
 const logController = require('../controllers/log.controller');
-const { authenticateToken, authorizeAdmin } = require('../../middleware/auth.middleware');
+const { authenticateToken } = require('../../middleware/auth.middleware');
+const {authorizeAdmin} = require('../../middleware/auth.middleware');
 
 const router = express.Router();
 
 // ========== ADMIN ONLY ROUTES ==========
+
+console.log('authenticateToken:', typeof authenticateToken);
+console.log('authorizeAdmin:', typeof authorizeAdmin);
+console.log('getAllLogs:', typeof logController.getAllLogs);
 
 // Get all logs with filters
 router.get('/', authenticateToken, authorizeAdmin, logController.getAllLogs);
@@ -37,3 +43,4 @@ router.get('/summary/user/:userId', authenticateToken, authorizeAdmin, logContro
 router.delete('/cleanup', authenticateToken, authorizeAdmin, logController.cleanupOldLogs);
 
 module.exports = router;
+

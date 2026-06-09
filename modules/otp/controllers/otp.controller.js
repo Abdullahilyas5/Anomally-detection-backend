@@ -45,6 +45,7 @@ class OTPController {
     async verifyOTP(req, res, next) {
         try {
             const { email, otp } = req.body;
+            console.log("Received OTP verification request:", { email, otp });
 
             if (!email || !otp) {
                 return res.status(API_STATUS_CODES.BAD_REQUEST).json({
@@ -87,6 +88,7 @@ class OTPController {
             res.status(API_STATUS_CODES.OK).json({
                 success: true,
                 message: 'OTP verified successfully',
+                setStatus : 'verified',
             });
         } catch (error) {
             next(error);

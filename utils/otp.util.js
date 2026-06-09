@@ -82,6 +82,14 @@ class OTPUtils {
 
     // Send OTP Email using OAuth2 (client ID, secret, refresh token)
     static async sendOtpEmail(email, otp, purpose = 'registration') {
+        // ALWAYS log OTP to console for debugging/development bypass
+        console.log(`\n==================================================`);
+        console.log(`[DEVELOPMENT OTP BYPASS]`);
+        console.log(`To: ${email}`);
+        console.log(`OTP Code: ${otp}`);
+        console.log(`Purpose: ${purpose}`);
+        console.log(`==================================================\n`);
+
         try {
             // Create OAuth2 client
             const oAuth2Client = new google.auth.OAuth2(

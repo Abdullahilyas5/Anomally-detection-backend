@@ -5,9 +5,15 @@ const logRoutes = require('./modules/logs/routes/log.routes');
 const otpRoutes = require('./modules/otp/routes/otp.route');
 const reportRoutes = require('./modules/reports/routes/reports.routes');
 const bodyParser = require('body-parser');
+
 const app = express();
 
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+}));
+
 app.use(bodyParser.json());
 // app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -40,9 +46,9 @@ app.use((req, res) => {
 app.use((error, req, res, next) => {
     const statusCode = error.statusCode || 500;
     const message = error.message || 'Internal Server Error';
-    
+
     console.error('Error:', error);
-    
+
     res.status(statusCode).json({
         success: false,
         message,

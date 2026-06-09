@@ -6,14 +6,26 @@ const router = express.Router();
 
 // ========== PUBLIC ROUTES (No authentication required) ==========
 
+
+// Get all users
+router.get('/get-all-users', authenticateToken, authorizeAdmin, userController.getAllUsers);
+
+// Get user by ID
+router.get('/get-user/:id', authenticateToken, authorizeAdmin, userController.getUserById);
+
 // User registration
 router.post('/register', userController.registerUser);
 
 // User login
 router.post('/login', userController.loginUser);
 
+
 // Refresh token
 router.post('/refresh-token', userController.refreshToken);
+
+// Forgot & Reset Password
+router.post('/forgot-password', userController.forgotPassword);
+router.post('/reset-password', userController.resetPassword);
 
 
 // ========== PROTECTED ROUTES (Authentication required) ==========
@@ -30,11 +42,7 @@ router.put('/change-password', authenticateToken, userController.changePassword)
 
 // ========== ADMIN ROUTES (Authentication + Admin role required) ==========
 
-// Get all users
-router.get('/', authenticateToken, authorizeAdmin, userController.getAllUsers);
 
-// Get user by ID
-router.get('/:id', authenticateToken, authorizeAdmin, userController.getUserById);
 
 // Get users by role
 router.get('/role/:role', authenticateToken, authorizeAdmin, userController.getUsersByRole);

@@ -30,33 +30,13 @@ class UserController {
                 purpose: 'registration'
             }
 
-
             const otp = await otpService.createOTP(userData);
 
-            user.otp = otp;
-
-            // // Log the registration action
-            // const log = await LogService.logAction({
-            //     user_id: user.id,
-            //     action: logtypes.REGISTERED_USERS,
-            //     entity_type: 'user',
-            //     entity_id: user.id,
-            //     status: 'success',
-            //     severity: 'info',
-            //     ip: req.ip
-            // });
-
-            // console.log('Log created:', log);
-
-            // if (!log) {
-            //     console.error('Failed to log user registration');
-            // }
-
-            // console.log('user ip :', req.ip);
             res.status(API_STATUS_CODES.CREATED).json({
                 success: true,
                 message: 'Verify your email , check your mail',
-                user
+                user,
+                setStatus: user.isVerified ? 'verified' : 'pending',
             });
         } catch (error) {
             next(error);
@@ -73,13 +53,23 @@ class UserController {
 
             const result = await userService.loginUser(email, password);
 
+            console.log('Login result:', result);
+
+            res.cookie('refreshToken', result.refreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'Strict',
+                maxAge: 60 * 60 * 24 * 7 * 1000 // 7 days
+            });
+
             res.status(API_STATUS_CODES.SUCCESS).json({
                 success: true,
                 message: 'Login successful',
                 data: {
                     user: result.user,
                     accessToken: result.accessToken,
-                    refreshToken: result.refreshToken
+                    refreshToken: result.refreshToken,
+                    setStatus: result.user.isVerified ? 'verified' : 'pending'
                 }
             });
         } catch (error) {
@@ -353,6 +343,48 @@ class UserController {
                 success: true,
                 data: users,
                 count: users.length
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async forgotPassword(req, res, next) {
+        try {
+            const { email } = req.body;
+            if (!email) {
+                return res.status(API_STATUS_CODES.BAD_REQUEST).json({
+                    success: false,
+                    message: 'Email is required'
+                });
+            }
+            const otpData = await userService.forgotPassword(email);
+            res.status(API_STATUS_CODES.SUCCESS).json({
+                success: true,
+                message: 'Password reset OTP sent successfully',
+                data: {
+                    email: otpData.email,
+                    expiresAt: otpData.expiresTime
+                }
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async resetPassword(req, res, next) {
+        try {
+            const { email, otp, newPassword } = req.body;
+            if (!email || !otp || !newPassword) {
+                return res.status(API_STATUS_CODES.BAD_REQUEST).json({
+                    success: false,
+                    message: 'Email, OTP, and newPassword are required'
+                });
+            }
+            await userService.resetPassword(email, otp, newPassword);
+            res.status(API_STATUS_CODES.SUCCESS).json({
+                success: true,
+                message: 'Password reset successfully'
             });
         } catch (error) {
             next(error);
