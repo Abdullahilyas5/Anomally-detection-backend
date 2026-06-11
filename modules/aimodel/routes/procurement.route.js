@@ -5,6 +5,8 @@ const upload = require('../../middleware/upload.middleware');
 const { authenticateToken } = require('../../middleware/auth.middleware');
 
 
+
+
 // 🔵 Manual prediction
 router.post('/predict', authenticateToken, controller.manualPredict);
 
@@ -16,6 +18,8 @@ router.post('/predict/pdf', authenticateToken, upload.single('file'), controller
 
 // 🔵 Get procurement
 router.get('/all', authenticateToken , controller.getall)
+
+
 router.get('/:id', authenticateToken, controller.get);
 
 

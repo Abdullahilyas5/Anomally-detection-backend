@@ -46,6 +46,10 @@ module.exports = (sequelize) => {
         defaultValue: 0,
       },
 
+      risk_level : {
+        type : DataTypes.STRING
+      },
+
       // ================= ML FEATURES =================
       country: DataTypes.STRING,
       tender_year: DataTypes.INTEGER,

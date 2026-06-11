@@ -1,19 +1,17 @@
 const fs = require("fs");
-const pdf = require("pdf-parse");
+const pdfParse = require("pdf-parse");
 
-/**
- * Convert PDF → structured JSON
- */
 async function pdfToJson(filePath) {
-    const dataBuffer = fs.readFileSync(filePath);
+    const buffer = await fs.promises.readFile(filePath);
 
-    const data = await pdf(dataBuffer);
+    const data = await pdfParse(buffer);
+
+    console.log("TEXT:", data.text);   // 👈 MUST be string
+    console.log("PAGES:", data.numpages);
 
     return {
-        text: data.text,        // full extracted text
-        pages: data.numpages,   // total pages
-        info: data.info         // metadata
+        text: data.text,
+        pages: data.numpages,
+        info: data.info
     };
 }
-
-module.exports = pdfToJson;

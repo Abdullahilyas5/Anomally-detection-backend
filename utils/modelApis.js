@@ -32,7 +32,7 @@ class ModelApiClient {
     static async predictBulk(payloadArray) {
         try {
             const res = await axios.post(
-                `${BASE_URL}/predict_bulk`,
+                `${MODEL_BASE_URL}/predict_bulk`,
                 payloadArray
             );
             return res.data;

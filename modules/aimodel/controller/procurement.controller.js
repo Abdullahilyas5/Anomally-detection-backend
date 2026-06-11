@@ -31,7 +31,8 @@ class ProcurementController {
     // ---------------- CSV ----------------
     async predictCSV(req, res) {
         try {
-            const userId = req.user.id;
+            const userId = req.user.userId;
+            console.log("file path : " , req.file.path);
 
             const result = await ingestionService.processCSV(
                 req.file.path,
@@ -44,6 +45,7 @@ class ProcurementController {
             });
 
         } catch (err) {
+            console.log("proc/contro : error from the csv" , err)
             res.status(500).json({ error: err.message });
         }
     }
@@ -51,7 +53,7 @@ class ProcurementController {
     // ---------------- PDF ----------------
     async predictPDF(req, res) {
         try {
-            const userId = req.user.id;
+            const userId = req.user.userId;
 
             const result = await ingestionService.processPDF(
                 req.file.path,
