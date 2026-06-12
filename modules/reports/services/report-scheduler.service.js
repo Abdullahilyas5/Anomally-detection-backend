@@ -21,8 +21,8 @@ class ReportSchedulerService {
 
     this.jobs.push(
       cron.schedule(process.env.REPORT_DAILY_CRON || '0 8 * * *', () => this.sendScheduledReport('summary', recipients, { days: 1 })),
-      cron.schedule(process.env.REPORT_WEEKLY_CRON || '0 8 * * 1', () => this.sendScheduledReport('executive', recipients, { days: 7 })),
-      cron.schedule(process.env.REPORT_MONTHLY_CRON || '0 8 1 * *', () => this.sendScheduledReport('compliance', recipients, { days: 30 }))
+      cron.schedule(process.env.REPORT_WEEKLY_CRON || '0 8 * * 1', () => this.sendScheduledReport('incident', recipients, { days: 7 })),
+      cron.schedule(process.env.REPORT_MONTHLY_CRON || '0 8 1 * *', () => this.sendScheduledReport('summary', recipients, { days: 30 }))
     );
   }
 

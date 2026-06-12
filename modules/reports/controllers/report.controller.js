@@ -10,22 +10,6 @@ class ReportController {
     }
   };
 
-  generateExecutiveReport = async (req, res, next) => {
-    try {
-      await this.handleReport(req, res, 'executive');
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  generateComplianceReport = async (req, res, next) => {
-    try {
-      await this.handleReport(req, res, 'compliance');
-    } catch (error) {
-      next(error);
-    }
-  };
-
   generateIncidentReport = async (req, res, next) => {
     try {
       await this.handleReport(req, res, 'incident');
@@ -37,6 +21,41 @@ class ReportController {
   generateIncidentReportById = async (req, res, next) => {
     try {
       await this.handleReport(req, res, 'incident', { anomalyId: req.params.id });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getPublicReports = async (req, res, next) => {
+    try {
+      const reports = await reportService.getPublicReports();
+      res.status(API_STATUS_CODES.OK).json({
+        success: true,
+        data: reports,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  downloadPublicReport = async (req, res, next) => {
+    try {
+      const report = await reportService.getReportById(req.params.id);
+      if (!report) {
+        return res.status(API_STATUS_CODES.NOT_FOUND).json({
+          success: false,
+          message: 'Report not found',
+        });
+      }
+
+      if (!report.isPublic) {
+        return res.status(API_STATUS_CODES.FORBIDDEN).json({
+          success: false,
+          message: 'This report is not public',
+        });
+      }
+
+      res.download(report.filePath, report.fileName);
     } catch (error) {
       next(error);
     }
@@ -73,8 +92,16 @@ class ReportController {
     });
 
     if (format === 'pdf') {
-      res.download(result.filePath, result.fileName);
-      return;
+      const role = req.user?.role;
+
+      if (!['auditor', 'admin'].includes(role)) {
+        return res.status(API_STATUS_CODES.FORBIDDEN).json({
+          success: false,
+          message: 'Only auditors and admins are allowed to download PDF reports',
+        });
+      }
+
+      return res.download(result.filePath, result.fileName);
     }
 
     if (format === 'html') {
@@ -101,6 +128,9 @@ class ReportController {
       status: query.status || body.status,
       severity: query.severity || body.severity,
       limit: query.limit || body.limit,
+      anomalyIds: query.anomalyIds || body.anomalyIds,
+      isPublic: query.isPublic || body.isPublic,
+      title: query.title || body.title,
     };
   }
 }

@@ -1,13 +1,21 @@
 const express = require('express');
 const userController = require('../controllers/user.controllers');
 const { authenticateToken, authorizeAdmin } = require('../../middleware/auth.middleware');
-
+const dashboardController = require('../controllers/dashboard.controller')
 const router = express.Router();
 
 // ========== PUBLIC ROUTES (No authentication required) ==========
 
 
 // Get all users
+router.get('/admin/dashboard', authenticateToken, authorizeAdmin, dashboardController.admin);
+router.get('/citizen/dashboard', authenticateToken, dashboardController.citizen);
+router.get('/auditor/dashboard', authenticateToken, dashboardController.auditor);
+
+router.post('/admin/decline', authenticateToken, authorizeAdmin , dashboardController.declineUser);
+router.post('/admin/block', authenticateToken,   authorizeAdmin ,dashboardController.blockUser);
+router.post('/admin/approve', authenticateToken, authorizeAdmin , dashboardController.approveUser);
+
 router.get('/get-all-users', authenticateToken, authorizeAdmin, userController.getAllUsers);
 
 // Get user by ID

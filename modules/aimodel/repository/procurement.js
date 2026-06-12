@@ -6,6 +6,7 @@ class ProcurementRepository {
   // ================= CREATE SINGLE =================
   async create(data) {
     try {
+      console.log("procurement model", Procurement)
       console.log("data at procurement repo : ", data);
       return await Procurement.create(data);
     } catch (error) {

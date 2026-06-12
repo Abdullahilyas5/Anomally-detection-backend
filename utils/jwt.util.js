@@ -14,7 +14,7 @@ class JwtUtil {
     // =========================
     // 🔐 ACCESS TOKEN (short life)
     // =========================
-    generateAccessToken(payload, expiresIn = "15m") {
+    generateAccessToken(payload, expiresIn = "15d") {
         try {
             return jwt.sign(payload, this.accessSecret, {
                 expiresIn,

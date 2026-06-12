@@ -245,17 +245,17 @@ class UserController {
             const updated = await userService.changeUserRole(parseInt(id), newRole);
 
             // Log role change
-            await LogService.logAction({
-                userId: req.user.userId,
-                action: 'USER_ROLE_CHANGED',
-                entityType: 'user',
-                entityId: parseInt(id),
-                before_state: { role: 'old_role' },
-                after_state: { role: newRole },
-                status: 'success',
-                severity: 'critical',
-                ip: req.ip
-            });
+            // await LogService.logAction({
+            //     userId: req.user.userId,
+            //     action: 'USER_ROLE_CHANGED',
+            //     entityType: 'user',
+            //     entityId: parseInt(id),
+            //     before_state: { role: 'old_role' },
+            //     after_state: { role: newRole },
+            //     status: 'success',
+            //     severity: 'critical',
+            //     ip: req.ip
+            // });
 
             res.status(API_STATUS_CODES.SUCCESS).json({
                 success: true,
@@ -390,6 +390,8 @@ class UserController {
             next(error);
         }
     }
+
+    
 }
 
 module.exports = new UserController();

@@ -7,6 +7,7 @@ const reportRoutes = require('./modules/reports/routes/reports.routes');
 const procurementRoutes = require('./modules/aimodel/routes/procurement.route');
 const anomalyRoutes = require('./modules/aimodel/routes/anomaly.routes');
 const flagRoutes = require('./modules/aimodel/routes/flag.routes');
+const ConfigRoutes = require('./modules/appconfig/routes/config.routes')
 const bodyParser = require('body-parser');
 
 const app = express();
@@ -36,8 +37,12 @@ app.use('/api/otp', otpRoutes);
 app.use('/api/reports', reportRoutes);
 
 app.use('/api/procurement', procurementRoutes);
+
 app.use('/api/anomalies', anomalyRoutes);
+
 app.use('/api/flags', flagRoutes);
+
+app.use('/api/config', ConfigRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

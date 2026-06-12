@@ -29,6 +29,15 @@ class ReportRepository {
     const where = this.buildDateWhere(filters);
     if (filters.status) where.status = filters.status;
     if (filters.severity) where.severity = filters.severity;
+    
+    if (filters.anomalyIds) {
+      const ids = Array.isArray(filters.anomalyIds)
+        ? filters.anomalyIds
+        : String(filters.anomalyIds).split(',').map(id => parseInt(id, 10)).filter(Boolean);
+      if (ids.length > 0) {
+        where.id = { [db.Sequelize.Op.in]: ids };
+      }
+    }
 
     return db.Anomaly.findAll({
       where,

@@ -7,9 +7,23 @@ const AppError = require('../../utils/AppError.util');
  */
 const authenticateToken = async (req, res, next) => {
     try {
+        let token = null;
         const authHeader = req.headers.authorization;
 
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            token = authHeader.split(' ')[1];
+        } else if (req.query && req.query.token) {
+            token = req.query.token;
+        } else if (req.headers.cookie) {
+            const cookies = req.headers.cookie.split(';').reduce((acc, cookie) => {
+                const parts = cookie.split('=');
+                acc[parts[0].trim()] = (parts[1] || '').trim();
+                return acc;
+            }, {});
+            token = cookies.accessToken || cookies.token;
+        }
+
+        if (!token) {
             return next(
                 new AppError(
                     RESPONSE_MESSAGES.ACCESS_DENIED || 'Access denied',
@@ -17,8 +31,6 @@ const authenticateToken = async (req, res, next) => {
                 )
             );
         }
-
-        const token = authHeader.split(' ')[1];
 
         const decoded = await JWTUtils.verifyAccessToken(token);
 

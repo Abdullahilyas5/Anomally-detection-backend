@@ -33,6 +33,8 @@ const modelOrder = [
   'aimodel/models/anomalies.model.js',
   'logs/models/log.model.js',
   'otp/models/otp.model.js',
+  'appconfig/models/config.model.js',
+  'reports/models/report.model.js'
 ];
 
 // Define model name mapping for PascalCase
@@ -42,7 +44,9 @@ const modelNameMap = {
   'aimodel/models/procurement-flag.model.js': 'ProcurementFlag',
   'aimodel/models/anomalies.model.js': 'Anomaly',
   'logs/models/log.model.js': 'SystemLog',
-  'otp/models/otp.model.js': 'OTP'
+  'otp/models/otp.model.js': 'OTP',
+  'appconfig/models/config.model.js' : 'Config',
+  'reports/models/report.model.js': 'Report'
 };
 
 // Load models in specific order

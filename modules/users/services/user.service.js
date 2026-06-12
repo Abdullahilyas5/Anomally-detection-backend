@@ -189,7 +189,7 @@ class UserService {
         }
 
         // Optional: validate allowed roles (recommended)
-        const allowedRoles = ['user', 'admin', 'moderator'];
+        const allowedRoles = ['user', 'admin', 'auditor'];
         if (!allowedRoles.includes(newRole)) {
             throw new Error('Invalid role type');
         }
@@ -204,6 +204,31 @@ class UserService {
 
         return await this.userRepository.updateUser(id, {
             role: newRole
+        });
+    }
+
+    async changeUserStatus(id, newStatus) {
+        const user = await this.userRepository.findUserById(id);
+
+        if (!user) {
+            throw new Error('User not found');
+        }
+
+        const allowedStatuses = ['active', 'inactive', 'blocked'];
+
+        if (!allowedStatuses.includes(newStatus)) {
+            throw new Error('Invalid status type');
+        }
+
+        if (user.status === newStatus) {
+            return {
+                message: 'User already has this status',
+                user
+            };
+        }
+
+        return await this.userRepository.updateUser(id, {
+            status: newStatus
         });
     }
 

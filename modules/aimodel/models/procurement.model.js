@@ -7,6 +7,14 @@ module.exports = (sequelize) => {
   class Procurement extends Model {
     static associate(models) {
 
+
+      Procurement.hasMany(models.Anomaly, {
+        foreignKey: 'procurement_id',
+        as: 'anomalies',
+        onDelete: 'CASCADE'
+      });
+
+
       Procurement.belongsTo(models.User, {
         foreignKey: 'created_by',
         as: 'creator',
@@ -46,8 +54,8 @@ module.exports = (sequelize) => {
         defaultValue: 0,
       },
 
-      risk_level : {
-        type : DataTypes.STRING
+      risk_level: {
+        type: DataTypes.STRING
       },
 
       // ================= ML FEATURES =================

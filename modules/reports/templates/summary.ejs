@@ -10,36 +10,67 @@
 
   <h2>Severity Breakdown</h2>
   <table>
-    <thead><tr><th>Severity</th><th>Count</th></tr></thead>
+    <thead>
+      <tr>
+        <th>Severity</th>
+        <th>Count</th>
+      </tr>
+    </thead>
     <tbody>
       <% severityBreakdown.forEach((row) => { %>
-        <tr><td><span class="pill <%= row.severity %>"><%= helpers.title(row.severity) %></span></td><td><%= helpers.number(row.count) %></td></tr>
+        <tr>
+          <td><span class="pill <%= row.severity %>"><%= helpers.title(row.severity) %></span></td>
+          <td><strong><%= helpers.number(row.count) %></strong></td>
+        </tr>
       <% }) %>
     </tbody>
   </table>
 
   <h2>Detection Trends</h2>
   <table>
-    <thead><tr><th>Date</th><th>Detections</th></tr></thead>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Detections</th>
+      </tr>
+    </thead>
     <tbody>
       <% trends.forEach((row) => { %>
-        <tr><td><%= row.date %></td><td><%= helpers.number(row.count) %></td></tr>
+        <tr>
+          <td><%= row.date %></td>
+          <td><strong style="color: #1e3a8a;"><%= helpers.number(row.count) %></strong></td>
+        </tr>
       <% }) %>
     </tbody>
   </table>
 
   <h2>Top Affected Systems</h2>
   <table>
-    <thead><tr><th>Procurement</th><th>File</th><th>Anomalies</th></tr></thead>
+    <thead>
+      <tr>
+        <th>Procurement</th>
+        <th>File</th>
+        <th>Anomalies Count</th>
+      </tr>
+    </thead>
     <tbody>
       <% topAffectedSystems.forEach((row) => { %>
         <tr>
-          <td><%= row.procurement ? row.procurement.title : `Procurement #${row.procurement_id}` %></td>
-          <td><%= row.procurement ? row.procurement.file_name : 'N/A' %></td>
-          <td><%= helpers.number(row.count) %></td>
+          <td><strong><%= row.procurement ? row.procurement.title : `Procurement #${row.procurement_id}` %></strong></td>
+          <td class="muted"><%= row.procurement ? row.procurement.file_name : 'N/A' %></td>
+          <td><span class="pill critical"><%= helpers.number(row.count) %></span></td>
         </tr>
       <% }) %>
     </tbody>
   </table>
+
+  <h2>Recommendations</h2>
+  <div style="background-color: #eff6ff; border-left: 4px solid #2563eb; padding: 12px; border-radius: 4px; margin-top: 15px;">
+    <ul style="margin: 0; padding-left: 20px; color: #1e40af; font-size: 11px;">
+      <% recommendations.forEach((item) => { %>
+        <li style="margin-bottom: 4px;"><%= item %></li>
+      <% }) %>
+    </ul>
+  </div>
 </body>
 </html>

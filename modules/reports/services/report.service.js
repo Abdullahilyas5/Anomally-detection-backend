@@ -7,7 +7,7 @@ const storage = require('./report-storage.service');
 const AppError = require('../../../utils/AppError.util');
 const { API_STATUS_CODES } = require('../../../app/constant/apistatus');
 
-const REPORT_TYPES = ['summary', 'incident', 'executive', 'compliance'];
+const REPORT_TYPES = ['summary', 'incident'];
 
 class ReportService {
   async generateReport({ type, format = 'json', filters = {}, requestedBy = null }) {
@@ -31,7 +31,19 @@ class ReportService {
     const filePath = await pdfService.createPdf({ html, fileName });
     const published = await storage.publish(filePath);
 
-    return { data, html, fileName, filePath, storage: published };
+    // Save report metadata to db
+    const isPublic = filters.isPublic === 'true' || filters.isPublic === true;
+    const reportRecord = await db.Report.create({
+      title: filters.title || data.meta.title || `${this.title(type)} Report`,
+      type,
+      fileName,
+      filePath,
+      isPublic,
+      createdBy: requestedBy?.id || null,
+      filters,
+    });
+
+    return { data, html, fileName, filePath, storage: published, report: reportRecord };
   }
 
   async sendReport({ type, to, subject, message, filters = {}, requestedBy = null }) {
@@ -161,6 +173,20 @@ class ReportService {
 
   title(value) {
     return String(value || '').replace(/\b\w/g, (char) => char.toUpperCase());
+  }
+
+  async getPublicReports() {
+    return db.Report.findAll({
+      where: { isPublic: true },
+      include: [
+        { model: db.User, as: 'creator', attributes: ['id', 'name', 'email', 'role'] }
+      ],
+      order: [['createdAt', 'DESC']],
+    });
+  }
+
+  async getReportById(id) {
+    return db.Report.findByPk(id);
   }
 }
 
