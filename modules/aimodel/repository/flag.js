@@ -1,4 +1,7 @@
-const { ProcurementFlag } = require('../models/procurement-flag.model');
+const db = require('../../../utils/database');
+
+const ProcurementFlag = db.ProcurementFlag;
+const User = db.User;
 
 class FlagRepository {
   async create(data) {
@@ -6,7 +9,13 @@ class FlagRepository {
   }
 
   async findByProcurement(procurement_id) {
-    return ProcurementFlag.findAll({ where: { procurement_id } });
+    return ProcurementFlag.findAll({
+      where: { procurement_id },
+      include: [
+        { model: User, as: 'auditor', attributes: ['id', 'name', 'email'] },
+      ],
+      order: [['created_at', 'DESC']],
+    });
   }
 }
 

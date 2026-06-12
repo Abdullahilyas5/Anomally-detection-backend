@@ -38,6 +38,25 @@ class AnomalyService {
     };
   }
 
+  async create(data) {
+    const { procurement_id, title, description, anomaly_type, severity, evidence } = data;
+
+    if (!procurement_id || !title || !description) {
+      throw new Error('procurement_id, title, and description are required');
+    }
+
+    return anomalyRepo.create({
+      procurement_id,
+      auditor_id: data.auditor_id,
+      title,
+      description,
+      anomaly_type: anomaly_type || 'other',
+      severity: severity || 'medium',
+      evidence: evidence || [],
+      status: 'open',
+    });
+  }
+
   async getAll() {
     return anomalyRepo.findAll();
   }

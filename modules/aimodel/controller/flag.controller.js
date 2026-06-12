@@ -3,7 +3,7 @@ const flagService = require('../service/flag.service');
 class FlagController {
   async create(req, res) {
     try {
-      const auditorId = req.user.id;
+      const auditorId = req.user.userId;
 
       const flag = await flagService.addFlag({
         ...req.body,

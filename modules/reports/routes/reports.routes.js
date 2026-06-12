@@ -4,7 +4,7 @@ const { authenticateToken, authorizeAdmin } = require('../../middleware/auth.mid
 
 const router = express.Router();
 
-// router.use(authenticateToken, authorizeAdmin);
+router.use(authenticateToken);
 
 router.get('/summary', reportController.generateSummaryReport);
 router.get('/executive', reportController.generateExecutiveReport);
