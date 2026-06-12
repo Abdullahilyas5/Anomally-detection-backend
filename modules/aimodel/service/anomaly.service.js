@@ -60,6 +60,10 @@ class AnomalyService {
   async getAll() {
     return anomalyRepo.findAll();
   }
+
+  async getType() {
+    return anomalyRepo.findType();
+  }
 }
 
 module.exports = new AnomalyService();

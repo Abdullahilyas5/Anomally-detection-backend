@@ -1,3 +1,4 @@
+const { where } = require('sequelize');
 const db = require('../../../utils/database');
 
 const Anomaly = db.Anomaly;
@@ -17,6 +18,10 @@ class AnomalyRepository {
       ],
       order: [['created_at', 'DESC']],
     });
+  }
+
+  async findType() {
+    return Anomaly.rawAttributes.anomaly_type.values;
   }
 }
 

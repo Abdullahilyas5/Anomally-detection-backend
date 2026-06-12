@@ -40,6 +40,16 @@ class AnomalyController {
       return res.status(500).json({ success: false, error: err.message });
     }
   }
+
+
+  async getType(req, res) {
+    try {
+      const data = await anomalyService.getType();
+      return res.json({ success: true, data });
+    } catch (err) {
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  }
 }
 
 module.exports = new AnomalyController();
