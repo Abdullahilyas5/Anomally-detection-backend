@@ -6,7 +6,17 @@ class DashboardController {
 
     async citizen(req, res) {
         try {
-            const data = await dashboardService.getCitizenDashboard(req.user.id);
+            const data = await dashboardService.getCitizenDashboard();
+            return res.json({ success: true, data });
+        } catch (err) {
+            return res.status(500).json({ success: false, message: err.message });
+        }
+    }
+
+
+    async reportstats(req, res) {
+        try {
+            const data = await dashboardService.getReportDashboard();
             return res.json({ success: true, data });
         } catch (err) {
             return res.status(500).json({ success: false, message: err.message });

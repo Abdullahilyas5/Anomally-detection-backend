@@ -7,20 +7,84 @@ const Config = db.Config;
 const User = db.User;
 const Procurement = db.Procurement;
 const Anomaly = db.Anomaly;
+const Report = db.Report;
 
 class DashboardRepository {
 
-    // ================= CITIZEN =================
-    async getCitizenDashboard(userId) {
+    async getReportDashboard() {
         return Promise.all([
-            Procurement.count({ where: { created_by: userId } }),
-
-            Procurement.count({
-                where: { created_by: userId, status: 'pending' }
+            // total public reports
+            Report.count({
+                where: { visibility: 'public' }
             }),
 
+            // reviewed reports
+            Report.count({
+                where: { is_reviewed: true }
+            }),
+
+            // summary reports
+            Report.count({
+                where: { type: 'summary' }
+            }),
+
+            // incident reports
+            Report.count({
+                where: { type: 'incident' }
+            }),
+
+            // full list of reports
+            Report.findAll({
+                order: [['created_at', 'DESC']]
+            })
+        ]);
+    }
+    async getReportDashboard() {
+        return Promise.all([
+            // total public reports
+            Report.count({
+                where : {is_public : true}
+            }),
+
+            // reviewed reports
+            Report.count(),
+
+            // summary reports
+            Report.count({
+                where: { type: 'summary' }
+            }),
+
+            // incident reports
+            Report.count({
+                where: { type: 'incident' }
+            }),
+
+            // full list of reports
+            Report.findAll({
+                order: [['created_at', 'DESC']]
+            })
+        ]);
+    }
+
+    // ================= CITIZEN =================
+    async getCitizenDashboard() {
+        return Promise.all([
+            Procurement.count(),
+
             Procurement.count({
-                where: { created_by: userId, status: 'approved' }
+                include: [{
+                    model: Anomaly,
+                    as: 'anomalies',
+                    required: false
+                }],
+                where: { '$anomalies.id$': null },
+                distinct: true
+            }),
+
+            Anomaly.count(),
+
+            Report.findAll({
+                order: [['created_at', 'DESC']]
             })
         ]);
     }

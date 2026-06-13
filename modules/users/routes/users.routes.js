@@ -10,6 +10,7 @@ const router = express.Router();
 // Get all users
 router.get('/admin/dashboard', authenticateToken, authorizeAdmin, dashboardController.admin);
 router.get('/citizen/dashboard', authenticateToken, dashboardController.citizen);
+router.get('/reviewed/report', authenticateToken, dashboardController.reportstats);
 router.get('/auditor/dashboard', authenticateToken, dashboardController.auditor);
 
 router.post('/admin/decline', authenticateToken, authorizeAdmin , dashboardController.declineUser);

@@ -4,81 +4,104 @@ const dashboardRepo = require('../repositories/dashboard.repository');
 
 class DashboardService {
 
-    async getCitizenDashboard(userId) {
-        const [total, pending, reviewed] =
-            await dashboardRepo.getCitizenDashboard(userId);
+    async getCitizenDashboard() {
+        const [
+            totalProcurements,
+            pendingReviews,
+            reviewed,
+            reports
+        ] = await dashboardRepo.getCitizenDashboard();
 
         return {
-            totalProcurements: total,
-            pendingReviews: pending,
-            reviewed
+            totalProcurements,
+            pendingReviews,
+            reviewed,
+            reports
+        };
+    }
+
+    async getReportDashboard() {
+        const [
+            totalPublicReports,
+            reviewedReports,
+            summaryReports,
+            incidentReports,
+            reports
+        ] = await dashboardRepo.getReportDashboard();
+
+        return {
+            totalPublicReports,
+            reviewedReports,
+            summaryReports,
+            incidentReports,
+            reports
         };
     }
 
     async getAuditorDashboard() {
-        const [
-            totalProcurements,
-            totalAnomalies,
-            highlighted,
-            pending,
-            anomalyTimeline,
-            anomalyDistribution
-        ] = await dashboardRepo.getAuditorDashboard();
+    const [
+        totalProcurements,
+        totalAnomalies,
+        highlighted,
+        pending,
+        anomalyTimeline,
+        anomalyDistribution
+    ] = await dashboardRepo.getAuditorDashboard();
 
-        return {
-            totalProcurements,
-            totalAnomalies,
-            highlighted,
-            pending,
-            anomalyTimeline,
-            anomalyDistribution
-        };
-    }
+    return {
+        totalProcurements,
+        totalAnomalies,
+        highlighted,
+        pending,
+        anomalyTimeline,
+        anomalyDistribution
+    };
+}
 
     async getAdminDashboard() {
-        const [
-            totalAnomalies,
-            highlighted,
-            totalProcurements,
-            pendingUsers,
-            totalUsers,
-            citizens,
-            auditors,
-            anomalyTimeline,
-            anomalyDistribution,
-            recentUsers,
-            pendingApprovals,
-            alertThreshold,
-        ] = await dashboardRepo.getAdminDashboard();
+    const [
+        totalAnomalies,
+        highlighted,
+        totalProcurements,
+        pendingUsers,
+        totalUsers,
+        citizens,
+        auditors,
+        anomalyTimeline,
+        anomalyDistribution,
+        recentUsers,
+        pendingApprovals,
+        alertThreshold,
+    ] = await dashboardRepo.getAdminDashboard();
 
-        return {
-            totalAnomalies,
-            highlighted,
-            totalProcurements,
-            pendingUsers,
-            totalUsers,
-            citizens,
-            auditors,
-            anomalyTimeline,
-            anomalyDistribution,
-            recentUsers,
-            pendingApprovals,
-            alertThreshold,
-        };
-    }
+    return {
+        totalAnomalies,
+        highlighted,
+        totalProcurements,
+        pendingUsers,
+        totalUsers,
+        citizens,
+        auditors,
+        anomalyTimeline,
+        anomalyDistribution,
+        recentUsers,
+        pendingApprovals,
+        alertThreshold,
+    };
+}
 
     // ================= USER ACTIONS =================
     async approveUser(userId, role) {
-        return dashboardRepo.approveUser(userId, role);
-    }
+    return dashboardRepo.approveUser(userId, role);
+}
 
     async declineUser(userId) {
-        return dashboardRepo.declineUser(userId);
-    }
+    return dashboardRepo.declineUser(userId);
+}
 
     async blockUser(userId) {
-        return dashboardRepo.blockUser(userId);
-    }
+    return dashboardRepo.blockUser(userId);
+}
 }
 
 module.exports = new DashboardService();
