@@ -391,7 +391,43 @@ class UserController {
         }
     }
 
-    
+
+    /**
+ * Logout user
+ * POST /api/users/logout
+ */
+    async logoutUser(req, res, next) {
+        try {
+            const userId = req.user?.userId; // optional (if auth middleware present)
+
+            const refreshToken = req.cookies?.refreshToken;
+
+            await userService.logoutUser(userId, refreshToken);
+
+            // clear refresh token cookie
+            res.clearCookie('refreshToken', {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'Strict',
+            });
+
+             res.clearCookie('accessToken', {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'Strict',
+            });
+
+            return res.status(API_STATUS_CODES.SUCCESS).json({
+                success: true,
+                message: 'Logged out successfully'
+            });
+
+        } catch (error) {
+            next(error);
+        }
+    }
+
+
 }
 
 module.exports = new UserController();

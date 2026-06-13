@@ -49,8 +49,8 @@ router.put('/profile', authenticateToken, userController.updateProfile);
 router.put('/change-password', authenticateToken, userController.changePassword);
 
 
+router.get('/logout' , authenticateToken , userController.logoutUser);
 // ========== ADMIN ROUTES (Authentication + Admin role required) ==========
-
 
 
 // Get users by role

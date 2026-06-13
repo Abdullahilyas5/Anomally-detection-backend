@@ -232,6 +232,19 @@ class UserService {
         });
     }
 
+
+    async logoutUser(userId, refreshToken) {
+        try {
+            // optional: invalidate refresh token in DB
+            if (refreshToken) {
+                await userRepository.removeRefreshToken(refreshToken);
+            }
+            return true;
+        } catch (error) {
+            throw error;
+        }
+    }
+
 }
 
 module.exports = new UserService();
