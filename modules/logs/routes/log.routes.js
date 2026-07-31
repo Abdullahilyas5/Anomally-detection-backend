@@ -8,10 +8,6 @@ const router = express.Router();
 
 // ========== ADMIN ONLY ROUTES ==========
 
-console.log('authenticateToken:', typeof authenticateToken);
-console.log('authorizeAdmin:', typeof authorizeAdmin);
-console.log('getAllLogs:', typeof logController.getAllLogs);
-
 // Get all logs with filters
 router.get('/', authenticateToken, authorizeAdmin, logController.getAllLogs);
 

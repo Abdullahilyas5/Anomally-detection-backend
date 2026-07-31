@@ -9,8 +9,8 @@ class ProcurementService {
     return procurementRepo.findById(id);
   }
 
-  async getallProcurement() {
-    return procurementRepo.findAll();
+  async getallProcurement(options = {}) {
+    return procurementRepo.findAll(options);
   }
 }
 

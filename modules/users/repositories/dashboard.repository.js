@@ -16,9 +16,7 @@ class DashboardRepository {
     async getReportDashboard() {
         return Promise.all([
             // total public reports
-            Report.count({
-                where : {is_public : true}
-            }),
+            Report.count(),
 
             // reviewed reports
             Report.count(),
@@ -35,7 +33,9 @@ class DashboardRepository {
 
             // full list of public reports
             Report.findAll({
-                where: { is_public: true },
+                include: [
+                    { model: User, as: 'creator', attributes: ['id', 'name', 'email', 'role'] }
+                ],
                 order: [['created_at', 'DESC']]
             })
         ]);
@@ -59,6 +59,9 @@ class DashboardRepository {
             Anomaly.count(),
 
             Report.findAll({
+                include: [
+                    { model: User, as: 'creator', attributes: ['id', 'name', 'email', 'role'] }
+                ],
                 order: [['created_at', 'DESC']]
             })
         ]);
