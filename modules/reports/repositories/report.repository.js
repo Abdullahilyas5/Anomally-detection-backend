@@ -29,7 +29,7 @@ class ReportRepository {
     const where = this.buildDateWhere(filters);
     if (filters.status) where.status = filters.status;
     if (filters.severity) where.severity = filters.severity;
-    
+
     if (filters.anomalyIds) {
       const ids = Array.isArray(filters.anomalyIds)
         ? filters.anomalyIds
@@ -136,14 +136,33 @@ class ReportRepository {
   }
 
   async getTopAffectedSystems(filters = {}) {
-    return db.Anomaly.findAll({
-      attributes: ['procurement_id', [fn('COUNT', col('Anomaly.id')), 'count']],
+    const result = await db.Anomaly.findAll({
+      attributes: [
+        'procurement_id',
+        [fn('COUNT', col('Anomaly.id')), 'count'],
+      ],
       where: this.buildDateWhere(filters),
-      include: [{ model: db.Procurement, as: 'procurement', attributes: ['id', 'title', 'file_name'], required: false }],
-      group: ['procurement_id', 'procurement.id', 'procurement.title', 'procurement.file_name'],
+      include: [
+        {
+          model: db.Procurement,
+          as: 'procurement',
+          attributes: ['id', 'title', 'file_name'],
+          required: false,
+        },
+      ],
+      group: [
+        'procurement_id',
+        'procurement.id',
+        'procurement.title',
+        'procurement.file_name',
+      ],
       order: [[literal('count'), 'DESC']],
       limit: 10,
     });
+
+    console.log(JSON.stringify(result, null, 2));
+
+    return result;
   }
 }
 

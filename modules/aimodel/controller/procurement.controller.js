@@ -1,5 +1,6 @@
 const ingestionService = require('../service/ingestion.service');
 const procurementService = require('../service/procurement.service');
+const LogService = require('../../logs/services/log.service');
 
 class ProcurementController {
 
@@ -16,6 +17,23 @@ class ProcurementController {
                 ...req.body,
                 userId
             });
+
+            // Log procurement prediction/ingestion
+            try {
+                await LogService.logAction({
+                    userId,
+                    userRole: req.user?.role || null,
+                    action: 'PROCUREMENT_PREDICTED',
+                    entityType: 'procurement',
+                    entityId: result?.id || null,
+                    status: 'success',
+                    severity: 'info',
+                    ip: req.ip,
+                    message: 'Manual procurement prediction/ingestion'
+                });
+            } catch (e) {
+                console.error('Failed to log procurement prediction:', e);
+            }
 
             res.status(201).json({
                 success: true,
@@ -39,6 +57,23 @@ class ProcurementController {
                 userId
             );
 
+            // Log CSV ingestion
+            try {
+                await LogService.logAction({
+                    userId,
+                    userRole: req.user?.role || null,
+                    action: 'PROCUREMENT_CSV_INGESTED',
+                    entityType: 'procurement',
+                    entityId: null,
+                    status: 'success',
+                    severity: 'info',
+                    ip: req.ip,
+                    message: 'Procurement CSV ingested'
+                });
+            } catch (e) {
+                console.error('Failed to log CSV ingestion:', e);
+            }
+
             res.json({
                 success: true,
                 data: result
@@ -59,6 +94,23 @@ class ProcurementController {
                 req.file.path,
                 userId
             );
+
+            // Log PDF ingestion
+            try {
+                await LogService.logAction({
+                    userId,
+                    userRole: req.user?.role || null,
+                    action: 'PROCUREMENT_PDF_INGESTED',
+                    entityType: 'procurement',
+                    entityId: null,
+                    status: 'success',
+                    severity: 'info',
+                    ip: req.ip,
+                    message: 'Procurement PDF ingested'
+                });
+            } catch (e) {
+                console.error('Failed to log PDF ingestion:', e);
+            }
 
             res.json({
                 success: true,

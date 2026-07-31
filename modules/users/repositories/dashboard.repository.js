@@ -11,34 +11,8 @@ const Report = db.Report;
 
 class DashboardRepository {
 
-    async getReportDashboard() {
-        return Promise.all([
-            // total public reports
-            Report.count({
-                where: { visibility: 'public' }
-            }),
+    // (legacy duplicate removed) - consolidated below
 
-            // reviewed reports
-            Report.count({
-                where: { is_reviewed: true }
-            }),
-
-            // summary reports
-            Report.count({
-                where: { type: 'summary' }
-            }),
-
-            // incident reports
-            Report.count({
-                where: { type: 'incident' }
-            }),
-
-            // full list of reports
-            Report.findAll({
-                order: [['created_at', 'DESC']]
-            })
-        ]);
-    }
     async getReportDashboard() {
         return Promise.all([
             // total public reports
@@ -59,8 +33,9 @@ class DashboardRepository {
                 where: { type: 'incident' }
             }),
 
-            // full list of reports
+            // full list of public reports
             Report.findAll({
+                where: { is_public: true },
                 order: [['created_at', 'DESC']]
             })
         ]);
@@ -130,7 +105,10 @@ class DashboardRepository {
                     [db.sequelize.fn('COUNT', '*'), 'value']
                 ],
                 group: ['anomaly_type']
-            })
+            }),
+
+            // Include current alert threshold configuration so auditor views can display it immediately
+            Config.findOne({ attributes: ['alertThreshold'] })
         ]);
     }
 

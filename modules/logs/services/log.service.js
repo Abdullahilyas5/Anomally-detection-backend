@@ -1,7 +1,6 @@
 const logRepository = require('../repositories/log.repository');
 const { RESPONSE_MESSAGES, API_STATUS_CODES } = require('../../../app/constant/apistatus');
 const AppError = require('../../../utils/AppError.util');
-const { param } = require('../routes/log.routes');
 
 class LogService {
 

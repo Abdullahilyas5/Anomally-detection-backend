@@ -1,5 +1,6 @@
 const reportService = require('../services/report.service');
 const { API_STATUS_CODES } = require('../../../app/constant/apistatus');
+const LogService = require('../../logs/services/log.service');
 
 class ReportController {
   generateSummaryReport = async (req, res, next) => {
@@ -55,6 +56,23 @@ class ReportController {
         });
       }
 
+      // Log public report download (no auth user available in some cases)
+      try {
+        await LogService.logAction({
+          userId: req.user?.userId || null,
+          userRole: req.user?.role || null,
+          action: 'PUBLIC_REPORT_DOWNLOADED',
+          entityType: 'report',
+          entityId: report.id || null,
+          status: 'success',
+          severity: 'info',
+          ip: req.ip,
+          message: `Public report ${report.id} downloaded`
+        });
+      } catch (e) {
+        console.error('Failed to log public report download:', e);
+      }
+
       res.download(report.filePath, report.fileName);
     } catch (error) {
       next(error);
@@ -71,6 +89,23 @@ class ReportController {
         filters: this.getFilters(req),
         requestedBy: req.user,
       });
+
+      // Log report send action
+      try {
+        await LogService.logAction({
+          userId: req.user?.userId || null,
+          userRole: req.user?.role || null,
+          action: 'REPORT_SENT',
+          entityType: 'report',
+          entityId: result?.fileName || null,
+          status: 'success',
+          severity: 'info',
+          ip: req.ip,
+          message: `Report of type ${req.body.type} sent to ${req.body.to || req.body.email}`
+        });
+      } catch (e) {
+        console.error('Failed to log report send action:', e);
+      }
 
       res.status(API_STATUS_CODES.OK).json({
         success: true,
@@ -91,6 +126,23 @@ class ReportController {
       requestedBy: req.user,
     });
 
+    // Log report generation
+    try {
+      await LogService.logAction({
+        userId: req.user?.userId || null,
+        userRole: req.user?.role || null,
+        action: 'REPORT_GENERATED',
+        entityType: 'report',
+        entityId: result.report?.id || null,
+        status: 'success',
+        severity: 'info',
+        ip: req.ip,
+        message: `Report generated: ${type} (${format})`
+      });
+    } catch (e) {
+      console.error('Failed to log report generation:', e);
+    }
+
     if (format === 'pdf') {
       const role = req.user?.role;
 
@@ -99,6 +151,23 @@ class ReportController {
           success: false,
           message: 'Only auditors and admins are allowed to download PDF reports',
         });
+      }
+
+      // Log download specifically
+      try {
+        await LogService.logAction({
+          userId: req.user?.userId || null,
+          userRole: req.user?.role || null,
+          action: 'REPORT_DOWNLOADED',
+          entityType: 'report',
+          entityId: result.report?.id || null,
+          status: 'success',
+          severity: 'info',
+          ip: req.ip,
+          message: `Report ${result.report?.id || result.fileName} downloaded as PDF`
+        });
+      } catch (e) {
+        console.error('Failed to log report download:', e);
       }
 
       return res.download(result.filePath, result.fileName);

@@ -32,8 +32,10 @@ class LogController {
             if (endDate) filters.endDate = endDate;
 
             const pagination = { page, limit };
+            console.log('req:', filters);
 
             const result = await logService.getAllLogs(filters, pagination);
+            console.log('result:', result);
 
             res.status(API_STATUS_CODES.OK).json({
                 success: true,

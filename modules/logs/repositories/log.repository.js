@@ -1,7 +1,8 @@
 const db = require('../../../utils/dbconnect');
+const { Op, QueryTypes } = require('sequelize');
 const AppError = require('../../../utils/AppError.util');
 const { API_STATUS_CODES } = require('../../../app/constant/apistatus');
-const SystemLog  = require('../models/log.model');
+const SystemLog  = require('../models/log.model')(db);
 
 class LogRepository {
 
@@ -19,8 +20,8 @@ class LogRepository {
                 entity_type: logData.entity_type || null,
                 entity_id: logData.entity_id || null,
                 ip_address: logData.ip_address || null,
-                severity: logData.severity || "info",
-                status: logData.status || "success",
+                severity: logData.severity || 'info',
+                status: logData.status || 'success',
                 message: logData.message || null,
             });
 
@@ -42,70 +43,32 @@ class LogRepository {
         const { page = 1, limit = 20, userId, action, entityType, severity, status, startDate, endDate } = options;
         const offset = (page - 1) * limit;
 
-        return new Promise((resolve, reject) => {
-            let whereClause = [];
-            let params = [];
+        const where = {};
+        if (userId) where.user_id = userId;
+        if (action) where.action = action;
+        if (entityType) where.entity_type = entityType;
+        if (severity) where.severity = severity;
+        if (status) where.status = status;
+        if (startDate || endDate) {
+            where.created_at = {};
+            if (startDate) where.created_at[Op.gte] = startDate;
+            if (endDate) where.created_at[Op.lte] = endDate;
+        }
 
-            if (userId) {
-                whereClause.push('user_id = ?');
-                params.push(userId);
-            }
-            if (action) {
-                whereClause.push('action = ?');
-                params.push(action);
-            }
-            if (entityType) {
-                whereClause.push('entity_type = ?');
-                params.push(entityType);
-            }
-            if (severity) {
-                whereClause.push('severity = ?');
-                params.push(severity);
-            }
-            if (status) {
-                whereClause.push('status = ?');
-                params.push(status);
-            }
-            if (startDate) {
-                whereClause.push('created_at >= ?');
-                params.push(startDate);
-            }
-            if (endDate) {
-                whereClause.push('created_at <= ?');
-                params.push(endDate);
-            }
-
-            const where = whereClause.length > 0 ? 'WHERE ' + whereClause.join(' AND ') : '';
-
-            // Get total count
-            const countSql = `SELECT COUNT(*) as total FROM system_logs ${where}`;
-            db.query(countSql, params, (error, countResults) => {
-                if (error) return reject(error);
-
-                const total = countResults[0].total;
-
-                // Get logs
-                const sql = `SELECT * FROM system_logs ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`;
-                db.query(sql, [...params, limit, offset], (error, results) => {
-                    if (error) return reject(error);
-
-                    // Parse JSON fields
-                    const logs = results.map(log => ({
-                        ...log,
-                        before_state: log.before_state ? JSON.parse(log.before_state) : null,
-                        after_state: log.after_state ? JSON.parse(log.after_state) : null
-                    }));
-
-                    resolve({
-                        logs,
-                        total,
-                        page,
-                        limit,
-                        pages: Math.ceil(total / limit)
-                    });
-                });
-            });
+        const { count, rows } = await SystemLog.findAndCountAll({
+            where,
+            order: [['created_at', 'DESC']],
+            limit: parseInt(limit, 10),
+            offset,
         });
+
+        return {
+            logs: rows.map((log) => log.toJSON()),
+            total: count,
+            page,
+            limit,
+            pages: Math.ceil(count / limit),
+        };
     }
 
     /**
@@ -145,37 +108,26 @@ class LogRepository {
      * @returns {Promise<Object>}
      */
     async getEntityLogs(entityType, entityId, options = {}) {
-        return new Promise((resolve, reject) => {
-            const { page = 1, limit = 20 } = options;
-            const offset = (page - 1) * limit;
+        const { page = 1, limit = 20 } = options;
+        const offset = (page - 1) * limit;
 
-            const countSql = 'SELECT COUNT(*) as total FROM system_logs WHERE entity_type = ? AND entity_id = ?';
-            db.query(countSql, [entityType, entityId], (error, countResults) => {
-                if (error) return reject(error);
-
-                const total = countResults[0].total;
-
-                const sql = `SELECT * FROM system_logs WHERE entity_type = ? AND entity_id = ? 
-                            ORDER BY created_at DESC LIMIT ? OFFSET ?`;
-                db.query(sql, [entityType, entityId, limit, offset], (error, results) => {
-                    if (error) return reject(error);
-
-                    const logs = results.map(log => ({
-                        ...log,
-                        before_state: log.before_state ? JSON.parse(log.before_state) : null,
-                        after_state: log.after_state ? JSON.parse(log.after_state) : null
-                    }));
-
-                    resolve({
-                        logs,
-                        total,
-                        page,
-                        limit,
-                        pages: Math.ceil(total / limit)
-                    });
-                });
-            });
+        const { count, rows } = await SystemLog.findAndCountAll({
+            where: {
+                entity_type: entityType,
+                entity_id: entityId,
+            },
+            order: [['created_at', 'DESC']],
+            limit: parseInt(limit, 10),
+            offset,
         });
+
+        return {
+            logs: rows.map((log) => log.toJSON()),
+            total: count,
+            page,
+            limit,
+            pages: Math.ceil(count / limit),
+        };
     }
 
     /**
@@ -204,23 +156,21 @@ class LogRepository {
      * @returns {Promise<Object>}
      */
     async getActivitySummary(days = 7) {
-        return new Promise((resolve, reject) => {
-            const sql = `
-                SELECT 
-                    action,
-                    COUNT(*) as count,
-                    severity,
-                    status
-                FROM system_logs
-                WHERE created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
-                GROUP BY action, severity, status
-                ORDER BY count DESC
-            `;
+        const sql = `
+            SELECT 
+                action,
+                COUNT(*) as count,
+                severity,
+                status
+            FROM system_logs
+            WHERE created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
+            GROUP BY action, severity, status
+            ORDER BY count DESC
+        `;
 
-            db.query(sql, [days], (error, results) => {
-                if (error) return reject(error);
-                resolve(results);
-            });
+        return db.query(sql, {
+            replacements: [days],
+            type: QueryTypes.SELECT,
         });
     }
 
@@ -230,19 +180,17 @@ class LogRepository {
      * @returns {Promise<Array>}
      */
     async getUserActivity(userId) {
-        return new Promise((resolve, reject) => {
-            const sql = `
-                SELECT action, COUNT(*) as count
-                FROM system_logs
-                WHERE user_id = ?
-                GROUP BY action
-                ORDER BY count DESC
-            `;
+        const sql = `
+            SELECT action, COUNT(*) as count
+            FROM system_logs
+            WHERE user_id = ?
+            GROUP BY action
+            ORDER BY count DESC
+        `;
 
-            db.query(sql, [userId], (error, results) => {
-                if (error) return reject(error);
-                resolve(results);
-            });
+        return db.query(sql, {
+            replacements: [userId],
+            type: QueryTypes.SELECT,
         });
     }
 
@@ -252,12 +200,12 @@ class LogRepository {
      * @returns {Promise<number>} - Number of deleted rows
      */
     async deleteOldLogs(days = 90) {
-        return new Promise((resolve, reject) => {
-            const sql = 'DELETE FROM system_logs WHERE created_at < DATE_SUB(NOW(), INTERVAL ? DAY)';
-            db.query(sql, [days], (error, results) => {
-                if (error) return reject(error);
-                resolve(results.affectedRows);
-            });
+        return SystemLog.destroy({
+            where: {
+                created_at: {
+                    [Op.lt]: db.literal(`DATE_SUB(NOW(), INTERVAL ${parseInt(days, 10)} DAY)`),
+                },
+            },
         });
     }
 }
