@@ -92,10 +92,6 @@ module.exports = (sequelize) => {
         comment: 'Array of flag IDs that support this anomaly',
       },
 
-      Anomalytype: {
-        type: DataTypes.ENUM('price spike', 'duplicate tender', 'fraud'),
-        allowNull : false, 
-      },
       status: {
         type: DataTypes.ENUM('open', 'investigating', 'resolved', 'closed'),
         defaultValue: 'open',

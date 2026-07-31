@@ -52,7 +52,16 @@ class IngestionService {
             risk_level: predictions[i].risk_level
         }));
 
-        const saved = await procurementRepo.bulkCreate(finalData);
+        // Batch bulk create to avoid very large single inserts and high memory/DB pressure
+        const BATCH_SIZE = 100;
+        const saved = [];
+
+        for (let i = 0; i < finalData.length; i += BATCH_SIZE) {
+            const batch = finalData.slice(i, i + BATCH_SIZE);
+            const batchSaved = await procurementRepo.bulkCreate(batch);
+            // procurementRepo.bulkCreate expected to return created records for the batch
+            saved.push(...batchSaved);
+        }
 
         const anomalies = saved
             .map((record, i) => {
@@ -68,7 +77,11 @@ class IngestionService {
             .filter(Boolean);
 
         if (anomalies.length) {
-            await anomalyRepo.bulkCreate(anomalies);
+            // Also create anomalies in batches
+            for (let i = 0; i < anomalies.length; i += BATCH_SIZE) {
+                const batch = anomalies.slice(i, i + BATCH_SIZE);
+                await anomalyRepo.bulkCreate(batch);
+            }
         }
 
         return { saved, predictions };
@@ -97,7 +110,15 @@ class IngestionService {
             is_flagged: predictions[i].is_anomaly
         }));
 
-        const saved = await procurementRepo.bulkCreate(finalData);
+        // Batch insert to avoid massive single query
+        const BATCH_SIZE = 100;
+        const saved = [];
+
+        for (let i = 0; i < finalData.length; i += BATCH_SIZE) {
+            const batch = finalData.slice(i, i + BATCH_SIZE);
+            const batchSaved = await procurementRepo.bulkCreate(batch);
+            saved.push(...batchSaved);
+        }
 
         const anomalies = saved
             .map((record, i) => {
@@ -113,7 +134,10 @@ class IngestionService {
             .filter(Boolean);
 
         if (anomalies.length) {
-            await anomalyRepo.bulkCreate(anomalies);
+            for (let i = 0; i < anomalies.length; i += BATCH_SIZE) {
+                const batch = anomalies.slice(i, i + BATCH_SIZE);
+                await anomalyRepo.bulkCreate(batch);
+            }
         }
 
         return { saved, predictions };
