@@ -118,20 +118,26 @@ class ReportController {
   }
 
   getFilters(req) {
-    const query = req.query || {};
-    const body = req.body || {};
+    const raw = { ...req.query, ...req.body };
+    const acceptedKeys = [
+      'startDate',
+      'endDate',
+      'days',
+      'status',
+      'severity',
+      'limit',
+      'anomalyIds',
+      'isPublic',
+      'title',
+    ];
 
-    return {
-      startDate: query.startDate || body.startDate,
-      endDate: query.endDate || body.endDate,
-      days: query.days || body.days,
-      status: query.status || body.status,
-      severity: query.severity || body.severity,
-      limit: query.limit || body.limit,
-      anomalyIds: query.anomalyIds || body.anomalyIds,
-      isPublic: query.isPublic || body.isPublic,
-      title: query.title || body.title,
-    };
+    return acceptedKeys.reduce((filters, key) => {
+      const value = raw[key];
+      if (value !== undefined && value !== null && value !== '') {
+        filters[key] = value;
+      }
+      return filters;
+    }, {});
   }
 }
 

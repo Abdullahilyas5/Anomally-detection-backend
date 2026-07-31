@@ -71,6 +71,11 @@ class UserService {
     async loginUser(email, password) {
         const user = await this.authenticateUser(email, password);
 
+        // Prevent blocked users from logging in
+        if (user.status === 'blocked') {
+            throw new AppError('User is blocked', API_STATUS_CODES.FORBIDDEN);
+        }
+
         const payload = {
             id: user.id,
             email: user.email,

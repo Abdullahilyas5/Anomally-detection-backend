@@ -32,6 +32,23 @@ class UserController {
 
             const otp = await otpService.createOTP(userData);
 
+            // Log registration
+            try {
+                await LogService.logAction({
+                    userId: user?.id || null,
+                    userRole: user?.role || null,
+                    action: 'USER_REGISTERED',
+                    entityType: 'user',
+                    entityId: user?.id || null,
+                    status: 'success',
+                    severity: 'info',
+                    ip: req.ip,
+                    message: 'New user registered'
+                });
+            } catch (e) {
+                console.error('Failed to log registration:', e);
+            }
+
             res.status(API_STATUS_CODES.CREATED).json({
                 success: true,
                 message: 'Verify your email , check your mail',
@@ -54,6 +71,23 @@ class UserController {
             const result = await userService.loginUser(email, password);
 
             console.log('Login result:', result);
+
+            // Log successful login
+            try {
+                await LogService.logAction({
+                    userId: result.user?.id || null,
+                    userRole: result.user?.role || null,
+                    action: 'USER_LOGIN',
+                    entityType: 'user',
+                    entityId: result.user?.id || null,
+                    status: 'success',
+                    severity: 'info',
+                    ip: req.ip,
+                    message: 'User logged in'
+                });
+            } catch (e) {
+                console.error('Failed to log login:', e);
+            }
 
             res.cookie('refreshToken', result.refreshToken, {
                 httpOnly: true,
@@ -242,20 +276,32 @@ class UserController {
             const { id } = req.params;
             const { newRole } = req.body;
 
-            const updated = await userService.changeUserRole(parseInt(id), newRole);
+            // Prevent admins from changing their own role
+            const targetId = parseInt(id, 10);
+            if (req.user && Number(req.user.userId) === targetId) {
+                return res.status(API_STATUS_CODES.FORBIDDEN).json({
+                    success: false,
+                    message: 'You cannot change your own role'
+                });
+            }
+
+            const updated = await userService.changeUserRole(targetId, newRole);
 
             // Log role change
-            // await LogService.logAction({
-            //     userId: req.user.userId,
-            //     action: 'USER_ROLE_CHANGED',
-            //     entityType: 'user',
-            //     entityId: parseInt(id),
-            //     before_state: { role: 'old_role' },
-            //     after_state: { role: newRole },
-            //     status: 'success',
-            //     severity: 'critical',
-            //     ip: req.ip
-            // });
+            try {
+                await LogService.logAction({
+                    userId: req.user.userId,
+                    action: 'USER_ROLE_CHANGED',
+                    entityType: 'user',
+                    entityId: targetId,
+                    after_state: { role: newRole },
+                    status: 'success',
+                    severity: 'critical',
+                    ip: req.ip
+                });
+            } catch (e) {
+                console.error('Failed to log role change:', e);
+            }
 
             res.status(API_STATUS_CODES.SUCCESS).json({
                 success: true,
@@ -276,19 +322,32 @@ class UserController {
             const { id } = req.params;
             const { status } = req.body;
 
-            const updated = await userService.changeUserStatus(parseInt(id), status);
+            const targetId = parseInt(id, 10);
+            // Prevent admins from blocking themselves
+            if (req.user && Number(req.user.userId) === targetId) {
+                return res.status(API_STATUS_CODES.FORBIDDEN).json({
+                    success: false,
+                    message: 'You cannot change your own status'
+                });
+            }
+
+            const updated = await userService.changeUserStatus(targetId, status);
 
             // Log status change
-            await LogService.logAction({
-                userId: req.user.userId,
-                action: 'USER_STATUS_CHANGED',
-                entityType: 'user',
-                entityId: parseInt(id),
-                after_state: { status },
-                status: 'success',
-                severity: status === 'blocked' ? 'critical' : 'warning',
-                ip: req.ip
-            });
+            try {
+                await LogService.logAction({
+                    userId: req.user.userId,
+                    action: 'USER_STATUS_CHANGED',
+                    entityType: 'user',
+                    entityId: targetId,
+                    after_state: { status },
+                    status: 'success',
+                    severity: status === 'blocked' ? 'critical' : 'warning',
+                    ip: req.ip
+                });
+            } catch (e) {
+                console.error('Failed to log status change:', e);
+            }
 
             res.status(API_STATUS_CODES.SUCCESS).json({
                 success: true,

@@ -2,79 +2,101 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <%- include('partials/styles') %>
+  <%- await include('partials/styles') %>
 </head>
 <body>
-  <%- include('partials/header', { meta, helpers }) %>
+  <div class="report-container">
+    <%-await include('partials/header', { meta, helpers }) %>
 
-  <h2>Incident Details</h2>
-  <table>
-    <thead>
-      <tr>
-        <th style="width: 8%;">ID</th>
-        <th style="width: 35%;">Title & Description</th>
-        <th style="width: 15%;">Timestamp</th>
-        <th style="width: 12%;">Severity</th>
-        <th style="width: 12%;">Status</th>
-        <th style="width: 18%;">Investigation Notes</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% anomalies.forEach((item) => { %>
-        <tr>
-          <td><strong>#<%= item.id %></strong></td>
-          <td>
-            <strong><%= item.title %></strong>
-            <div class="muted" style="margin-top: 4px; font-size: 10px;"><%= item.description %></div>
-          </td>
-          <td><%= helpers.formatDate(item.createdAt) %></td>
-          <td><span class="pill <%= item.severity %>"><%= helpers.title(item.severity) %></span></td>
-          <td><span class="pill <%= item.status %>"><%= helpers.title(item.status) %></span></td>
-          <td style="font-size: 11px;"><%= item.investigation_notes || 'No notes recorded.' %></td>
-        </tr>
-      <% }) %>
-    </tbody>
-  </table>
+    <div class="report-meta">
+      <span><strong>Report Type:</strong> <%= helpers.title(meta.type) %></span>
+      <span><strong>Requested By:</strong> <%= meta.requestedBy?.name || meta.requestedBy?.email || 'System' %></span>
+      <span><strong>Period:</strong> <%= meta.periodLabel %></span>
+    </div>
 
-  <h2>Associated Evidence and Logs</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Action</th>
-        <th>Severity</th>
-        <th>Status</th>
-        <th>Message</th>
-        <th>Timestamp</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% if (logs && logs.length > 0) { %>
-        <% logs.slice(0, 15).forEach((log) => { %>
+    <section class="report-section">
+      <%-await include('partials/kpis', { kpis, helpers }) %>
+    </section>
+
+    <section class="report-section">
+      <h2>Incident Details</h2>
+      <table>
+        <thead>
           <tr>
-            <td><strong><%= log.action %></strong></td>
-            <td><span class="pill <%= log.severity %>"><%= helpers.title(log.severity) %></span></td>
-            <td><span class="pill <%= log.status %>"><%= helpers.title(log.status) %></span></td>
-            <td class="muted"><%= log.message || 'N/A' %></td>
-            <td><%= helpers.formatDate(log.createdAt) %></td>
+            <th style="width: 8%;">ID</th>
+            <th style="width: 32%;">Title & Description</th>
+            <th style="width: 16%;">Timestamp</th>
+            <th style="width: 12%;">Severity</th>
+            <th style="width: 12%;">Status</th>
+            <th style="width: 20%;">Investigation Notes</th>
           </tr>
-        <% }) %>
-      <% } else { %>
-        <tr>
-          <td colspan="5" style="text-align: center;" class="muted">No system logs available for the selected timeframe.</td>
-        </tr>
-      <% } %>
-    </tbody>
-  </table>
+        </thead>
+        <tbody>
+          <% anomalies.forEach((item) => { %>
+            <tr>
+              <td><strong>#<%= item.id %></strong></td>
+              <td>
+                <strong><%= item.title %></strong>
+                <div class="muted" style="margin-top: 6px;"><%= item.description || 'No description provided.' %></div>
+              </td>
+              <td><%= helpers.formatDate(item.createdAt) %></td>
+              <td><span class="pill <%= item.severity %>"><%= helpers.title(item.severity) %></span></td>
+              <td><span class="pill <%= item.status %>"><%= helpers.title(item.status) %></span></td>
+              <td style="font-size: 12px;"><%= item.investigation_notes || 'No notes recorded.' %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </section>
 
-  <h2>Auditor Recommendations & Action Plan</h2>
-  <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 12px; border-radius: 4px; margin-top: 15px;">
-    <p style="margin: 0 0 8px 0; font-weight: bold; color: #991b1b; font-size: 12px;">Immediate Actions Recommended:</p>
-    <ul style="margin: 0; padding-left: 20px; color: #991b1b; font-size: 11px;">
-      <% recommendations.forEach((item) => { %>
-        <li style="margin-bottom: 4px;"><%= item %></li>
-      <% }) %>
-      <li style="margin-bottom: 4px;">Compare procurement metrics with supplier profiles and cross-reference previous submissions.</li>
-    </ul>
+    <section class="report-section">
+      <h2>Associated Evidence and Logs</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Action</th>
+            <th>Severity</th>
+            <th>Status</th>
+            <th>Message</th>
+            <th>Timestamp</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (logs && logs.length > 0) { %>
+            <% logs.slice(0, 15).forEach((log) => { %>
+              <tr>
+                <td><strong><%= log.action %></strong></td>
+                <td><span class="pill <%= log.severity %>"><%= helpers.title(log.severity) %></span></td>
+                <td><span class="pill <%= log.status %>"><%= helpers.title(log.status) %></span></td>
+                <td class="muted"><%= log.message || 'N/A' %></td>
+                <td><%= helpers.formatDate(log.createdAt) %></td>
+              </tr>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td colspan="5" style="text-align: center;" class="muted">No system logs available for the selected timeframe.</td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="report-section">
+      <h2>Auditor Recommendations & Action Plan</h2>
+      <div class="summary-card" style="background: #fef2f2; border-left: 4px solid #ef4444; padding: 18px;">
+        <p style="margin: 0 0 10px 0; font-weight: 700; color: #991b1b; font-size: 12px;">Immediate Actions Recommended:</p>
+        <ul style="margin: 0; padding-left: 18px; color: #991b1b; font-size: 12px;">
+          <% recommendations.forEach((item) => { %>
+            <li style="margin-bottom: 6px;"><%= item %></li>
+          <% }) %>
+          <li style="margin-bottom: 6px;">Compare procurement metrics with supplier profiles and cross-reference previous submissions.</li>
+        </ul>
+      </div>
+    </section>
+
+    <div class="report-footer">
+      Generated by the Audit Reports service. Carefully review incident findings and verify remediation actions.
+    </div>
   </div>
 </body>
 </html>

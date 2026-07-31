@@ -18,7 +18,16 @@ class ReportService {
       return { data };
     }
 
-    const html = await reportRenderer.render(type, data);
+    // Ensure the data passed to the renderer contains no unresolved promises or functions
+    const safeData = JSON.parse(JSON.stringify(data, (_key, value) => {
+      // Replace functions with their string (not ideal) and leave primitives/objects as-is
+      if (typeof value === 'function') return value.toString();
+      // If any Promise slipped through, convert to string to avoid [object Promise] in output
+      if (value && typeof value === 'object' && typeof value.then === 'function') return '[[PROMISE]]';
+      return value;
+    }));
+
+    const html = await reportRenderer.render(type, safeData);
     if (format === 'html') {
       return { html, data };
     }
@@ -53,13 +62,19 @@ class ReportService {
 
     const result = await this.generateReport({ type, format: 'pdf', filters, requestedBy });
 
-    await mailer.sendReport({
-      to,
-      subject: subject || `${result.data.meta.title} - ${result.data.meta.generatedAtLabel}`,
-      message: message || 'Please find the generated report attached.',
-      attachmentPath: result.filePath,
-      attachmentName: result.fileName,
-    });
+    try {
+      await mailer.sendReport({
+        to,
+        subject: subject || `${result.data.meta.title} - ${result.data.meta.generatedAtLabel}`,
+        message: message || 'Please find the generated report attached.',
+        attachmentPath: result.filePath,
+        attachmentName: result.fileName,
+      });
+    } catch (err) {
+      console.error('Failed to send report email:', err);
+      // Bubble a friendly error to controller
+      throw new AppError(`Failed to send report email: ${err.message || 'mailer error'}`, API_STATUS_CODES.INTERNAL_SERVER_ERROR);
+    }
 
     return {
       type,
