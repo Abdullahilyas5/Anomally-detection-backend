@@ -45,7 +45,8 @@ class DashboardService {
         highlighted,
         pending,
         anomalyTimeline,
-        anomalyDistribution
+        anomalyDistribution,
+        configThreshold
     ] = await dashboardRepo.getAuditorDashboard();
 
     return {
@@ -54,7 +55,8 @@ class DashboardService {
         highlighted,
         pending,
         anomalyTimeline,
-        anomalyDistribution
+        anomalyDistribution,
+        alertThreshold: configThreshold?.alertThreshold ?? configThreshold
     };
 }
 
@@ -71,7 +73,7 @@ class DashboardService {
         anomalyDistribution,
         recentUsers,
         pendingApprovals,
-        alertThreshold,
+        configThreshold,
     ] = await dashboardRepo.getAdminDashboard();
 
     return {
@@ -86,7 +88,7 @@ class DashboardService {
         anomalyDistribution,
         recentUsers,
         pendingApprovals,
-        alertThreshold,
+        alertThreshold: configThreshold?.alertThreshold ?? configThreshold,
     };
 }
 

@@ -10,14 +10,27 @@ class AnomalyRepository {
     return Anomaly.create(data);
   }
 
-  async findAll() {
-    return Anomaly.findAll({
+  async findAll(options = {}) {
+    const query = {
       include: [
         { model: Procurement, as: 'procurement' },
         { model: User, as: 'auditor', attributes: ['id', 'name', 'email'] },
       ],
       order: [['created_at', 'DESC']],
-    });
+    };
+
+    if (options.page || options.limit) {
+      const page = Math.max(1, Number(options.page) || 1);
+      const limit = Math.min(1000, Math.max(1, Number(options.limit) || 10));
+      const { count, rows } = await Anomaly.findAndCountAll({
+        ...query,
+        limit,
+        offset: (page - 1) * limit,
+      });
+      return { rows, total: count, page, limit, pages: Math.ceil(count / limit) };
+    }
+
+    return Anomaly.findAll(query);
   }
 
   async findType() {

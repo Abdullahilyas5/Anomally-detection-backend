@@ -38,9 +38,20 @@ class ProcurementRepository {
   }
 
   // ================= GET ALL =================
-  async findAll() {
+  async findAll(options = {}) {
     try {
-       const data = await Procurement.findAll({
+      if (options.page || options.limit) {
+        const page = Math.max(1, Number(options.page) || 1);
+        const limit = Math.min(100, Math.max(1, Number(options.limit) || 10));
+        const { count, rows } = await Procurement.findAndCountAll({
+          order: [['created_at', 'DESC']],
+          limit,
+          offset: (page - 1) * limit,
+        });
+        return { rows, total: count, page, limit, pages: Math.ceil(count / limit) };
+      }
+
+      const data = await Procurement.findAll({
         order: [['created_at', 'DESC']]
       });
       console.log("data from the repo procurement : " , data);

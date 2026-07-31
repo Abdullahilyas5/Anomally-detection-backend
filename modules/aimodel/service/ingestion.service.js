@@ -5,6 +5,18 @@ const ModelApiClient = require('../../../utils/modelApis');
 const procurementRepo = require('../repository/procurement');
 const anomalyRepo = require('../repository/anomaly');
 
+const getAnomalyType = (reason = '') => {
+    const normalized = String(reason).toLowerCase();
+
+    if (normalized.includes('price') || normalized.includes('spike')) return 'price_spike';
+    if (normalized.includes('duplicate') || normalized.includes('repeated bid')) return 'duplicate_bid';
+    if (normalized.includes('rigging') || normalized.includes('cartel')) return 'bid_rigging';
+    if (normalized.includes('vendor') || normalized.includes('supplier')) return 'vendor_dominance';
+    if (normalized.includes('missing') || normalized.includes('incomplete')) return 'missing_information';
+    if (normalized.includes('fraud')) return 'fraud';
+    return 'inconsistency';
+};
+
 class IngestionService {
 
     // ================= SINGLE =================
@@ -23,11 +35,14 @@ class IngestionService {
         });
 
         if (prediction.is_anomaly) {
+            const reason = prediction.reason || "Model flagged anomaly";
             await anomalyRepo.create({
                 procurement_id: saved.id,
+                title: reason,
+                description: reason,
+                anomaly_type: getAnomalyType(reason),
                 score: prediction.risk_score,
                 risk_level: prediction.risk_level,
-                reason: prediction.reason || "Model flagged anomaly"
             });
         }
 
@@ -69,9 +84,11 @@ class IngestionService {
 
                 return {
                     procurement_id: record.id,
+                    title: predictions[i].reason || "Bulk anomaly",
+                    description: predictions[i].reason || "Bulk anomaly",
+                    anomaly_type: getAnomalyType(predictions[i].reason),
                     score: predictions[i].risk_score,
                     risk_level: predictions[i].risk_level,
-                    reason: predictions[i].reason || "Bulk anomaly"
                 };
             })
             .filter(Boolean);
@@ -126,9 +143,11 @@ class IngestionService {
 
                 return {
                     procurement_id: record.id,
+                    title: predictions[i].reason || "PDF bulk anomaly",
+                    description: predictions[i].reason || "PDF bulk anomaly",
+                    anomaly_type: getAnomalyType(predictions[i].reason),
                     score: predictions[i].risk_score,
                     risk_level: predictions[i].risk_level,
-                    reason: predictions[i].reason || "PDF bulk anomaly"
                 };
             })
             .filter(Boolean);

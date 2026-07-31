@@ -70,12 +70,27 @@ module.exports = (sequelize) => {
           'inconsistency',
           'fraud',
           'missing_info',
+          'price_spike',
+          'duplicate_bid',
+          'bid_rigging',
+          'vendor_dominance',
+          'missing_information',
           'other'
         ),
         defaultValue: 'other',
         allowNull: false,
         validate: {
-          isIn: [['inconsistency', 'fraud', 'missing_info', 'other']],
+          isIn: [[
+            'inconsistency',
+            'fraud',
+            'missing_info',
+            'price_spike',
+            'duplicate_bid',
+            'bid_rigging',
+            'vendor_dominance',
+            'missing_information',
+            'other'
+          ]],
         },
       },
       severity: {

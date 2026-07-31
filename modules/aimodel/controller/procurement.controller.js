@@ -135,7 +135,10 @@ class ProcurementController {
 
     async getall(req, res) {
         try {
-            const data = await procurementService.getallProcurement();
+            const data = await procurementService.getallProcurement({
+                page: req.query.page,
+                limit: req.query.limit,
+            });
             console.log("data in controller:" , data)
             res.json(data);
         } catch (err) {

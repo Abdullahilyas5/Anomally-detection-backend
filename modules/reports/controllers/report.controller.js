@@ -49,13 +49,6 @@ class ReportController {
         });
       }
 
-      if (!report.isPublic) {
-        return res.status(API_STATUS_CODES.FORBIDDEN).json({
-          success: false,
-          message: 'This report is not public',
-        });
-      }
-
       // Log public report download (no auth user available in some cases)
       try {
         await LogService.logAction({

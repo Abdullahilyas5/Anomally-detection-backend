@@ -69,7 +69,10 @@ class AnomalyController {
 
   async getAll(req, res) {
     try {
-      const data = await anomalyService.getAll();
+      const data = await anomalyService.getAll({
+        page: req.query.page,
+        limit: req.query.limit,
+      });
 
       // Log access to anomalies list by auditor/admin
       try {

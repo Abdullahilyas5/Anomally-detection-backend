@@ -57,8 +57,8 @@ class AnomalyService {
     });
   }
 
-  async getAll() {
-    return anomalyRepo.findAll();
+  async getAll(options = {}) {
+    return anomalyRepo.findAll(options);
   }
 
   async getType() {

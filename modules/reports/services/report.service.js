@@ -192,7 +192,7 @@ class ReportService {
 
   async getPublicReports() {
     return db.Report.findAll({
-      where: { isPublic: true },
+      where: {},
       include: [
         { model: db.User, as: 'creator', attributes: ['id', 'name', 'email', 'role'] }
       ],
