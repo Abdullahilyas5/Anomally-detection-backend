@@ -1,8 +1,6 @@
-const db = require('../../../utils/dbconnect');
+const db = require('../../../utils/database');
 const { Op, QueryTypes } = require('sequelize');
-const AppError = require('../../../utils/AppError.util');
-const { API_STATUS_CODES } = require('../../../app/constant/apistatus');
-const SystemLog  = require('../models/log.model')(db);
+const { SystemLog } = db;
 
 class LogRepository {
 
@@ -24,8 +22,6 @@ class LogRepository {
                 status: logData.status || 'success',
                 message: logData.message || null,
             });
-
-            console.log('Log created:', log.toJSON());
 
             return log;
 

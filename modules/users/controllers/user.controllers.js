@@ -68,7 +68,7 @@ class UserController {
         try {
             const { email, password } = req.body;
 
-            const result = await userService.loginUser(email, password);
+            const result = await userService.loginUser(email, password, req.ip);
 
             console.log('Login result:', result);
 

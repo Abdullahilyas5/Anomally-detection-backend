@@ -4,6 +4,7 @@ const { RESPONSE_MESSAGES, API_STATUS_CODES } = require('../../../app/constant/a
 const AppError = require('../../../utils/AppError.util');
 const otpService = require('../../otp/services/otp.service');
 const jwtUtil = require('../../../utils/jwt.util');
+const LogService = require('../../logs/services/log.service');
 
 class UserService {
     constructor() {
@@ -68,11 +69,27 @@ class UserService {
     }
 
     // 🔐 UPDATED LOGIN (ACCESS + REFRESH TOKENS)
-    async loginUser(email, password) {
+    async loginUser(email, password, ip = null) {
         const user = await this.authenticateUser(email, password);
 
-        // Prevent blocked users from logging in
+        // Prevent blocked users from logging in and record the blocked login attempt
         if (user.status === 'blocked') {
+            try {
+                await LogService.logAction({
+                    userId: user.id,
+                    userRole: user.role || null,
+                    action: 'USER_LOGIN_BLOCKED',
+                    entityType: 'user',
+                    entityId: user.id,
+                    status: 'failure',
+                    severity: 'warning',
+                    ip,
+                    message: 'Blocked user attempted to login'
+                });
+            } catch (logError) {
+                console.error('Failed to log blocked login attempt:', logError);
+            }
+
             throw new AppError('User is blocked', API_STATUS_CODES.FORBIDDEN);
         }
 

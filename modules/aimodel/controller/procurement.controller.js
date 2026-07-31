@@ -135,12 +135,19 @@ class ProcurementController {
 
     async getall(req, res) {
         try {
+<<<<<<< HEAD
             const data = await procurementService.getallProcurement({
                 page: req.query.page,
                 limit: req.query.limit,
             });
             console.log("data in controller:" , data)
             res.json(data);
+=======
+            const page = Number(req.query.page) || 1;
+            const limit = Number(req.query.limit) || 10;
+            const data = await procurementService.getallProcurement({ page, limit });
+            res.json({ success: true, data });
+>>>>>>> 5a269b8f64efc5bc79ac6ee11d2d24b30fa906a7
         } catch (err) {
             res.status(500).json({ error: err.message });
         }
