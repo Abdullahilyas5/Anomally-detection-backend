@@ -49,10 +49,7 @@ class ReportController {
         });
       }
 
-<<<<<<< HEAD
-=======
 
->>>>>>> 5a269b8f64efc5bc79ac6ee11d2d24b30fa906a7
       // Log public report download (no auth user available in some cases)
       try {
         await LogService.logAction({

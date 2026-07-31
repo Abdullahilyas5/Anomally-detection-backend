@@ -33,12 +33,9 @@ class DashboardRepository {
 
             // full list of public reports
             Report.findAll({
-<<<<<<< HEAD
-=======
                 include: [
                     { model: User, as: 'creator', attributes: ['id', 'name', 'email', 'role'] }
                 ],
->>>>>>> 5a269b8f64efc5bc79ac6ee11d2d24b30fa906a7
                 order: [['created_at', 'DESC']]
             })
         ]);
